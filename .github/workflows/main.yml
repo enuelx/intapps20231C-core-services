@@ -2,6 +2,10 @@ name: building java spring and deploy on aws
 on:
   push:
     branches: [main]
+    paths-ignore:
+      - 'docs/**'
+      - 'infraestructure/**'
+      - 'README.md'
 jobs:
   publish-and-deploy:
     runs-on: ubuntu-latest
