@@ -1,0 +1,57 @@
+name: building java spring and deploy on aws
+on:
+  push:
+    branches: [main]
+jobs:
+  publish-and-deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: production
+    permissions:
+      id-token: write
+      contents: read
+    steps:
+      - uses: actions/checkout@v2
+      - name: Setup java
+        uses: actions/setup-java@v3
+        with:
+          java-version: "17"
+          distribution: corretto
+          cache: maven
+      - name: Cache local Maven repository
+        uses: actions/cache@v3
+        with:
+          path: ~/.m2/repository
+          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+          restore-keys: |
+            ${{ runner.os }}-maven-
+      - name: Publish package
+        run: mvn $MAVEN_CLI_OPTS clean deploy
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          MAVEN_CLI_OPTS: "-s .m2/settings.xml --batch-mode"
+      - name: Upload jar
+        uses: actions/upload-artifact@v3
+        with:
+          name: core-services
+          path: target
+          retention-days: 15
+      - uses: actions/setup-node@v1
+        with:
+          node-version: v16
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1.7.0
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE }}
+          role-session-name: GitHubActions
+          audience: sts.amazonaws.com
+          aws-region: sa-east-1
+      - name: Install dependencies
+        run: npm install
+      - name: Run build
+        run: npm run build
+      - name: Install Plugin and Deploy
+        uses: serverless/github-action@v3.1.0
+        with:
+          args: -c "serverless deploy --verbose --stage production"
+          entrypoint: /bin/sh
