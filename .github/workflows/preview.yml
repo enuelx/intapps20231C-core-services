@@ -1,0 +1,42 @@
+name: preview to main
+on:
+  pull_request:
+    branches: [main]
+jobs:
+  build_on_pr:
+    runs-on: ubuntu-latest
+    environment:
+      name: preview
+    permissions:
+      id-token: write
+      contents: read
+    steps:
+      - uses: actions/checkout@v2
+      - name: Setup java
+        uses: actions/setup-java@v3
+        with:
+          java-version: "17"
+          distribution: adopt
+          cache: maven
+      - name: Cache local Maven repository
+        uses: actions/cache@v3
+        with:
+          path: ~/.m2/repository
+          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+          restore-keys: |
+            ${{ runner.os }}-maven-
+      - name: Publish package
+        run: mvn -B deploy
+        env:
+          GITHUB_TOKEN: ${{ secrets.JAVA_DEPLOY_TOKEN }}
+      - run: mkdir preview && cp target/*.jar preview
+      - uses: actions/upload-artifact@v3
+        with:
+          name: Package
+          path: preview
+      - name: Upload jar
+        uses: actions/upload-artifact@v3
+        with:
+          name: core-services
+          path: preview
+          retention-days: 5
