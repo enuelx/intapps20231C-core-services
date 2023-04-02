@@ -28,7 +28,7 @@ jobs:
       - name: Publish package
         run: mvn -B deploy
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.JAVA_DEPLOY_TOKEN }}
       - run: mkdir production && cp target/*.jar production
       - uses: actions/upload-artifact@v3
         with:
