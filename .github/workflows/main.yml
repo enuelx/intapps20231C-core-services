@@ -29,6 +29,11 @@ jobs:
         run: mvn --batch-mode --update-snapshots verify
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - run: mkdir production && cp target/*.jar production
+      - uses: actions/upload-artifact@v3
+        with:
+          name: Package
+          path: production
       - name: Upload jar
         uses: actions/upload-artifact@v3
         with:
@@ -38,19 +43,19 @@ jobs:
       - uses: actions/setup-node@v1
         with:
           node-version: v16
-      - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v1.7.0
-        with:
-          role-to-assume: ${{ secrets.AWS_ROLE }}
-          role-session-name: GitHubActions
-          audience: sts.amazonaws.com
-          aws-region: sa-east-1
-      - name: Install dependencies
-        run: npm install
-      - name: Run build
-        run: npm run build
-      - name: Install Plugin and Deploy
-        uses: serverless/github-action@v3.1.0
-        with:
-          args: -c "serverless deploy --verbose --stage production"
-          entrypoint: /bin/sh
+      # - name: Configure AWS credentials
+      #   uses: aws-actions/configure-aws-credentials@v1.7.0
+      #   with:
+      #     role-to-assume: ${{ secrets.AWS_ROLE }}
+      #     role-session-name: GitHubActions
+      #     audience: sts.amazonaws.com
+      #     aws-region: sa-east-1
+      # - name: Install dependencies
+      #   run: npm install
+      # - name: Run build
+      #   run: npm run build
+      # - name: Install Plugin and Deploy
+      #   uses: serverless/github-action@v3.1.0
+      #   with:
+      #     args: -c "serverless deploy --verbose --stage production"
+      #     entrypoint: /bin/sh
