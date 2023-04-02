@@ -26,10 +26,9 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-maven-
       - name: Publish package
-        run: mvn $MAVEN_CLI_OPTS clean deploy
+        run: mvn --batch-mode --update-snapshots verify
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          MAVEN_CLI_OPTS: "-s .m2/settings.xml --batch-mode"
       - name: Upload jar
         uses: actions/upload-artifact@v3
         with:
