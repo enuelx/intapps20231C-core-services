@@ -30,10 +30,6 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.JAVA_DEPLOY_TOKEN }}
       - run: mkdir production && cp target/*.jar production
-      - uses: actions/upload-artifact@v3
-        with:
-          name: Package
-          path: production
       - name: Upload jar
         uses: actions/upload-artifact@v3
         with:
