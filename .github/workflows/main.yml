@@ -28,7 +28,7 @@ jobs:
       - name: Publish package
         run: |
           echo "<settings><servers><server><id>github</id><username>OWNER</username><password>${GITHUB_TOKEN}</password></server></servers></settings>" > ~/.m2/settings.xml
-          mvn deploy
+          mvn --settings ~/.m2/settings.xml deploy
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - run: mkdir production && cp target/*.jar production
