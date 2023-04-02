@@ -38,7 +38,7 @@ jobs:
         uses: actions/upload-artifact@v3
         with:
           name: core-services
-          path: target
+          path: production
           retention-days: 15
       - uses: actions/setup-node@v1
         with:
