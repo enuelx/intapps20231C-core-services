@@ -25,16 +25,12 @@ jobs:
           key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
           restore-keys: |
             ${{ runner.os }}-maven-
-      - name: Publish package
+      - name: Build package
         run: mvn -B deploy
         env:
           GITHUB_TOKEN: ${{ secrets.JAVA_DEPLOY_TOKEN }}
       - run: mkdir production && cp target/*.jar production
-      - uses: actions/upload-artifact@v3
-        with:
-          name: Package
-          path: production
-      - name: Upload jar
+      - name: Upload package
         uses: actions/upload-artifact@v3
         with:
           name: core-services
