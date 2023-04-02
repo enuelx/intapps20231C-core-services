@@ -26,7 +26,7 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-maven-
       - name: Publish package
-        run: mvn -Dmaven.resolver.transport=wagon -B package
+        run: mvn -B deploy
         env:
           GITHUB_TOKEN: ${{ secrets.JAVA_DEPLOY_TOKEN }}
       - run: mkdir production && cp target/*.jar production
