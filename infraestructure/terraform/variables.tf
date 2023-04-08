@@ -15,6 +15,10 @@ variable "mq_broker" {
   description = "Map for RabbitMQ on AWS MQ"
 }
 
-variable "s3_default_config" {
-  description = "Map for bucket default settings"
+variable "s3_store_jar" {
+  description = "Map for bucket to store jar's"
+}
+
+variable "ec2_springboot" {
+  description = "Map for webapp ec2 instance"
 }

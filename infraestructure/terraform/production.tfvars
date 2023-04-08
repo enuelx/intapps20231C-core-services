@@ -21,9 +21,9 @@ vpc = {
 mq_broker = {
   apply_immediately          = true
   auto_minor_version_upgrade = true
-  deployment_mode            = "ACTIVE_STANDBY_MULTI_AZ"
-  engine_type                = "ActiveMQ"
-  engine_version             = "5.15.14"
+  deployment_mode            = "SINGLE_INSTANCE"
+  engine_type                = "RabbitMQ"
+  engine_version             = "3.10.10"
   host_instance_type         = "mq.t3.micro"
   publicly_accessible        = false
   general_log_enabled        = true
@@ -32,11 +32,18 @@ mq_broker = {
   use_aws_owned_key          = true
 }
 
-s3_default_config = {
+s3_store_jar = {
   enabled            = true
   user_enabled       = false
   versioning_enabled = true
   acl                = "private"
   bucket_key_enabled = true
   sse_algorithm      = "aws:kms"
+}
+
+ec2_springboot = {
+  ssh_public_key_path   = "/secrets"
+  generate_ssh_key      = "true"
+  private_key_extension = ".pem"
+  public_key_extension  = ".pub"
 }

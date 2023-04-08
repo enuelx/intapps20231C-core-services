@@ -1,3 +1,4 @@
+# KMS
 module "kms_key_lambda" {
   source                  = "cloudposse/kms-key/aws"
   version                 = "0.12.1"
@@ -34,6 +35,7 @@ module "kms_key_s3" {
   alias                   = "alias/${var.globals["stage"]}/s3"
 }
 
+# VPC
 module "vpc" {
   source                 = "terraform-aws-modules/vpc/aws"
   name                   = "${var.globals["namespace"]}-${var.globals["stage"]}"
@@ -49,9 +51,10 @@ module "vpc" {
   enable_dns_hostnames   = var.vpc["enable_dns_hostnames"]
 }
 
+# MQ
 module "mq_broker" {
   source                     = "cloudposse/mq-broker/aws"
-  version                    = "2.0.1"
+  version                    = "3.0.0"
   namespace                  = var.globals["namespace"]
   stage                      = var.globals["stage"]
   name                       = "${var.globals["namespace"]}-${var.globals["stage"]}"
@@ -71,17 +74,96 @@ module "mq_broker" {
   security_groups            = module.vpc.default_security_group_id
 }
 
-module "s3_store_lambda_core" {
+# S3
+module "s3_store_jar" {
   source             = "cloudposse/s3-bucket/aws"
   version            = "3.0.0"
-  acl                = var.s3_default_config["acl"]
-  enabled            = var.s3_default_config["enabled"]
-  user_enabled       = var.s3_default_config["user_enabled"]
-  versioning_enabled = var.s3_default_config["versioning_enabled"]
-  name               = "${var.globals["namespace"]}-${var.globals["stage"]}-store-lambda"
+  acl                = var.s3_store_jar["acl"]
+  enabled            = var.s3_store_jar["enabled"]
+  user_enabled       = var.s3_store_jar["user_enabled"]
+  versioning_enabled = var.s3_store_jar["versioning_enabled"]
+  name               = "${var.globals["namespace"]}-${var.globals["stage"]}-store-jar"
   stage              = var.globals["stage"]
   namespace          = var.globals["namespace"]
-  bucket_key_enabled = var.s3_default_config["bucket_key_enabled"]
+  bucket_key_enabled = var.s3_store_jar["bucket_key_enabled"]
   kms_master_key_arn = module.kms_key_s3.key_arn
-  sse_algorithm      = var.s3_default_config["sse_algorithm"]
+  sse_algorithm      = var.s3_store_jar["sse_algorithm"]
+}
+
+# EC2
+data "aws_iam_policy_document" "ec2" {
+  statement {
+    effect = "Allow"
+
+    actions = [
+      "sts:AssumeRole"
+    ]
+
+    principals {
+      type        = "Service"
+      identifiers = ["ec2.amazonaws.com"]
+    }
+  }
+}
+
+resource "aws_iam_role" "ec2" {
+  name               = "${var.globals["namespace"]}-${var.globals["stage"]}-ec2"
+  assume_role_policy = data.aws_iam_policy_document.ec2.json
+}
+
+module "aws_key_pair" {
+  source                = "cloudposse/key-pair/aws"
+  version               = "0.18.3"
+  namespace             = var.globals["namespace"]
+  stage                 = var.globals["stage"]
+  name                  = "${var.globals["namespace"]}-${var.globals["stage"]}"
+  ssh_public_key_path   = var.ec2_springboot["ssh_public_key_path"]
+  generate_ssh_key      = var.ec2_springboot["generate_ssh_key"]
+  private_key_extension = var.ec2_springboot["private_key_extension"]
+  public_key_extension  = var.ec2_springboot["public_key_extension"]
+}
+
+module "ec2_instance" {
+  source                      = "cloudposse/ec2-instance/aws"
+  version                     = "0.47.1"
+  ssh_key_pair                = module.aws_key_pair.key_name
+  vpc_id                      = module.vpc.vpc_id
+  subnet                      = module.subnets.public_subnet_ids[0]
+  security_groups             = [module.vpc.vpc_default_security_group_id]
+  associate_public_ip_address = true
+  name                        = "${var.globals["namespace"]}-${var.globals["stage"]}-springboot"
+  namespace                   = var.globals["namespace"]
+  stage                       = var.globals["stage"]
+  additional_ips_count        = 1
+  ebs_volume_count            = 2
+  security_group_rules = [
+    {
+      type        = "egress"
+      from_port   = 0
+      to_port     = 65535
+      protocol    = "-1"
+      cidr_blocks = ["0.0.0.0/0"]
+    },
+    {
+      type        = "ingress"
+      from_port   = 22
+      to_port     = 22
+      protocol    = "tcp"
+      cidr_blocks = ["0.0.0.0/0"]
+    },
+    {
+      type        = "ingress"
+      from_port   = 80
+      to_port     = 80
+      protocol    = "tcp"
+      cidr_blocks = ["0.0.0.0/0"]
+    },
+    {
+      type        = "ingress"
+      from_port   = 443
+      to_port     = 443
+      protocol    = "tcp"
+      cidr_blocks = ["0.0.0.0/0"]
+    }
+  ]
 }
