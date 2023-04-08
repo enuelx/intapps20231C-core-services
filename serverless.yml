@@ -4,7 +4,7 @@ provider:
   runtime: java11
   timeout: 30
 package:
-  artifact: production/rabbitmq-tutorials-2.0.0.RELEASE.jar
+  artifact: production/rabbitmq-tutorials-0.0.2-RELEASE-${GITHUB_SHA::6}.jar
 functions:
   members:
     handler: com.healthfirst.memberfunction.AwsLambdaHandler

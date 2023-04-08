@@ -30,7 +30,7 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-maven-
       - name: Build package
-        run: mvn versions:set -DnewVersion=0.0.2-RELEASE-${GITHUB_SHA::6} && mvn --batch-mode clean deploy -DskipTests=true
+        run: mvn versions:set -DnewVersion=0.0.2-${GITHUB_SHA::6}-RELEASE && mvn --batch-mode clean deploy -DskipTests=true
         env:
           GITHUB_TOKEN: ${{ secrets.JAVA_DEPLOY_TOKEN }}
       - run: mkdir production && cp target/*.jar production
