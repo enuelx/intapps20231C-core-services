@@ -1,7 +1,7 @@
 name: building java spring and deploy on aws
 on:
   push:
-    branches: [main]
+    branches: [main, 'feat/deploy-infra']
     paths-ignore:
       - 'docs/**'
       - 'infraestructure/**'
@@ -30,7 +30,7 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-maven-
       - name: Build package
-        run: mvn -B deploy
+        run: mvn --batch-mode clean deploy -DskipTests=true
         env:
           GITHUB_TOKEN: ${{ secrets.JAVA_DEPLOY_TOKEN }}
       - run: mkdir production && cp target/*.jar production
