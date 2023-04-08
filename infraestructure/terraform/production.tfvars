@@ -32,11 +32,18 @@ mq_broker = {
   use_aws_owned_key          = true
 }
 
-s3_default_config = {
+s3_store_jar = {
   enabled            = true
   user_enabled       = false
   versioning_enabled = true
   acl                = "private"
   bucket_key_enabled = true
   sse_algorithm      = "aws:kms"
+}
+
+ec2_springboot = {
+  ssh_public_key_path   = "/secrets"
+  generate_ssh_key      = "true"
+  private_key_extension = ".pem"
+  public_key_extension  = ".pub"
 }

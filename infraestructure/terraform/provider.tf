@@ -10,12 +10,12 @@ provider "aws" {
   }
 }
 
-terraform {
-  backend "s3" {
-    encrypt        = true
-    bucket         = "core-prod-tfstate"
-    key            = "terraform.tfstate"
-    region         = "us-east-1"
-    dynamodb_table = "ccore-prod-tfstate-lock"
-  }
-}
+# terraform {
+#   backend "s3" {
+#     encrypt        = true
+#     bucket         = "core-prod-tfstate"
+#     key            = "terraform.tfstate"
+#     region         = "us-east-1"
+#     dynamodb_table = "ccore-prod-tfstate-lock"
+#   }
+# }

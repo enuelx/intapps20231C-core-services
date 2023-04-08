@@ -27,15 +27,9 @@
 
     <dependencies>
         <dependency>
-            <groupId>org.springframework.cloud</groupId>
+            <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-amqp</artifactId>
-          </dependency>
-          <dependency>
-            <groupId>com.amazonaws</groupId>
-            <artifactId>aws-lambda-java-core</artifactId>
-            <version>${aws-lambda-core.version}</version>
-            <scope>provided</scope>
-          </dependency>
+        </dependency>
     </dependencies>
 
     <build>
