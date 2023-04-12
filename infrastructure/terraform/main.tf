@@ -8,7 +8,7 @@ module "kms_key_lambda" {
   description             = "KMS key for lambdas"
   deletion_window_in_days = 30
   enable_key_rotation     = true
-  alias                   = "alias/${var.globals["stage"]}/lambda"
+  alias                   = "alias/${var.globals["namespace"]}/${var.globals["stage"]}/lambda"
 }
 
 module "kms_key_parameter_store" {
@@ -20,7 +20,7 @@ module "kms_key_parameter_store" {
   description             = "KMS key for parameter store"
   deletion_window_in_days = 30
   enable_key_rotation     = true
-  alias                   = "alias/${var.globals["stage"]}/ps"
+  alias                   = "alias/${var.globals["namespace"]}/${var.globals["stage"]}/ps"
 }
 
 module "kms_key_s3" {
@@ -32,7 +32,7 @@ module "kms_key_s3" {
   description             = "KMS key for bucket s3"
   deletion_window_in_days = 30
   enable_key_rotation     = true
-  alias                   = "alias/${var.globals["stage"]}/s3"
+  alias                   = "alias/${var.globals["namespace"]}/${var.globals["stage"]}/s3"
 }
 
 # VPC
