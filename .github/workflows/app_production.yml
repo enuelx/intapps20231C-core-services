@@ -12,18 +12,18 @@ permissions:
   actions: read
 
 jobs:
-  setup:
-    uses: github/workflows/reusables/setup_java.yml
+  auth:
+    uses: .github/workflows/reusables/get_aws_credentials.yml@feat-deploy-infra
     with:
       environment: ${{ github.ref_name }}
     secrets: inherit
-  auth:
-    uses: .github/workflows/reusables/get_aws_credentials.yml
+  setup:
+    uses: github/workflows/reusables/setup_java.yml@feat-deploy-infra
     with:
       environment: ${{ github.ref_name }}
     secrets: inherit
   upload-jar-to-registry:
-    uses: .github/workflows/reusables/maven_upload_jar.yml
+    uses: .github/workflows/reusables/maven_upload_jar.yml@feat-deploy-infra
     with:
       environment: ${{ github.ref_name }}
     secrets:
