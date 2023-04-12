@@ -1,7 +1,7 @@
 name: building java spring and deploy on aws
 on:
   push:
-    branches: [deploy-infra]
+    branches: [feat/deploy-infra]
     paths:
       - "infraestructure/**"
 jobs:
