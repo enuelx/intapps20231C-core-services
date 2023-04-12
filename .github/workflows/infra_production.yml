@@ -14,9 +14,9 @@ jobs:
       id-token: write
       contents: read
     steps:
-      - uses: ./workflows/reusables/get_aws_credentials.yml
+      - uses: .github/workflows/reusables/get_aws_credentials.yml
         with:
           environment: ${{ github.ref_name }}
-      - uses: ./workflows/reusables/terraform.yml
+      - uses: .github/workflows/reusables/terraform.yml
         with:
           environment: ${{ github.ref_name }}
