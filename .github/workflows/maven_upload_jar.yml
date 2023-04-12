@@ -14,6 +14,13 @@ jobs:
       name: ${{ inputs.environment }}
     steps:
       - uses: actions/checkout@v2
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE }}
+          role-session-name: GitHubActions
+          audience: sts.amazonaws.com
+          aws-region: sa-east-1
       - name: Build package
         run: mvn versions:set -DnewVersion=0.0.2-${GITHUB_SHA::6}-RELEASE && mvn --batch-mode clean deploy -DskipTests=true
         env:

@@ -1,10 +1,9 @@
 name: building java spring and deploy on aws
 on:
   push:
-    branches: [feat/deploy-infra]
+    branches: [main]
     paths:
       - "infraestructure/**"
-      - ".github/**"
 
 permissions:
   id-token: write

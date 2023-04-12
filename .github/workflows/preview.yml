@@ -9,13 +9,7 @@ permissions:
   actions: read
 
 jobs:
-  build:
-    uses: ./.github/workflows/get_aws_credentials.yml
-    with:
-      environment: preview
-    secrets: inherit
   setup:
-    needs: ["build"]
     uses: ./.github/workflows/setup_java.yml
     with:
       environment: preview
