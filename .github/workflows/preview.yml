@@ -17,9 +17,9 @@ jobs:
       contents: read
       actions: read
     steps:
-      - uses: ./.github/workflows/reusables/setup_java.yml
+      - uses: .github/workflows/reusables/setup_java.yml
         with:
           environment: preview
-      - uses: ./.github/workflows/reusables/maven_tests.yml
+      - uses: .github/workflows/reusables/maven_tests.yml
         with:
           environment: preview
