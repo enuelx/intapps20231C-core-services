@@ -13,7 +13,7 @@ permissions:
 
 jobs:
   auth:
-    uses: enuelx/intapps20231C-core-services/.git/.github/workflows/reusables/get_aws_credentials.yml@feat-deploy-infra
+    uses: enuelx/intapps20231C-core-services/.github/workflows/reusables/get_aws_credentials.yml@feat-deploy-infra
     with:
       environment: ${{ github.ref_name }}
     secrets: inherit
