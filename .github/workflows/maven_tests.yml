@@ -13,5 +13,6 @@ jobs:
     environment:
       name: ${{ inputs.environment }}
     steps:
+      - uses: actions/checkout@v2
       - name: All tests
         run: mvn clean install

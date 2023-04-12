@@ -1,23 +1,18 @@
 name: building java spring and deploy on aws
 on:
   push:
-    branches: [main, feat/*infra*]
+    branches: [main]
     paths:
       - "infraestructure/**"
+
+permissions:
+  id-token: write
+  contents: read
+  actions: read
+
 jobs:
   provisioning:
-    runs-on: ubuntu-latest
-    environment:
-      name: ${{ github.ref_name }}
-    permissions:
-      id-token: write
-      contents: read
-    steps:
-      - uses: ./.github/workflows/reusables/get_aws_credentials.yml
-        with:
-          environment: ${{ github.ref_name }}
-        secrets: inherit
-      - uses: ./.github/workflows/reusables/terraform.yml
-        with:
-          environment: ${{ github.ref_name }}
-        secrets: inherit
+    uses: ./.github/workflows/terraform.yml
+    with:
+      environment: ${{ github.ref_name }}
+    secrets: inherit

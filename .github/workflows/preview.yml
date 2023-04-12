@@ -1,20 +1,22 @@
 name: preview to main
+
 on:
   pull_request:
     branches: [main]
+permissions:
+  id-token: write
+  contents: read
+  actions: read
+
 jobs:
-  build_on_pr:
-    runs-on: ubuntu-latest
-    environment:
-      name: preview
-    permissions:
-      id-token: write
-      contents: read
-      actions: read
-    steps:
-      - uses: ./.github/workflows/reusables/setup_java.yml
-        with:
-          environment: preview
-      - uses: ./.github/workflows/reusables/maven_tests.yml
-        with:
-          environment: preview
+  setup:
+    uses: ./.github/workflows/setup_java.yml
+    with:
+      environment: preview
+    secrets: inherit
+  test:
+    needs: ["setup"]
+    uses: ./.github/workflows/maven_tests.yml
+    with:
+      environment: preview
+    secrets: inherit
