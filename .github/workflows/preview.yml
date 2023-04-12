@@ -8,6 +8,7 @@ jobs:
     steps:
       - uses: actions/checkout@v2
   build_on_pr:
+    needs: ["checkout"]
     runs-on: ubuntu-latest
     environment:
       name: preview
