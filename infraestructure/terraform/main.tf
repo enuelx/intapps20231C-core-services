@@ -54,10 +54,10 @@ module "vpc" {
 # MQ
 module "mq_broker" {
   source                     = "cloudposse/mq-broker/aws"
-  version                    = "3.0.0"
+  version                    = "2.0.1"
   namespace                  = var.globals["namespace"]
   stage                      = var.globals["stage"]
-  name                       = "${var.globals["namespace"]}-${var.globals["stage"]}"
+  name                       = var.globals["shortname"]
   apply_immediately          = var.mq_broker["apply_immediately"]
   auto_minor_version_upgrade = var.mq_broker["auto_minor_version_upgrade"]
   deployment_mode            = var.mq_broker["deployment_mode"]
@@ -70,27 +70,47 @@ module "mq_broker" {
   encryption_enabled         = var.mq_broker["encryption_enabled"]
   use_aws_owned_key          = var.mq_broker["use_aws_owned_key"]
   vpc_id                     = module.vpc.vpc_id
-  subnet_ids                 = module.vpc.private_subnets
-  security_groups            = module.vpc.default_security_group_id
+  subnet_ids                 = [module.vpc.private_subnets[0]]
+  allowed_security_group_ids = [module.vpc.default_security_group_id]
+  allowed_ingress_ports      = var.mq_broker["allowed_ingress_ports"]
 }
 
-# S3
-module "s3_store_jar" {
-  source             = "cloudposse/s3-bucket/aws"
-  version            = "3.0.0"
-  acl                = var.s3_store_jar["acl"]
-  enabled            = var.s3_store_jar["enabled"]
-  user_enabled       = var.s3_store_jar["user_enabled"]
-  versioning_enabled = var.s3_store_jar["versioning_enabled"]
-  name               = "${var.globals["namespace"]}-${var.globals["stage"]}-store-jar"
-  stage              = var.globals["stage"]
-  namespace          = var.globals["namespace"]
-  bucket_key_enabled = var.s3_store_jar["bucket_key_enabled"]
-  kms_master_key_arn = module.kms_key_s3.key_arn
-  sse_algorithm      = var.s3_store_jar["sse_algorithm"]
-}
+# # S3
+# module "s3_store_jar" {
+#   source             = "cloudposse/s3-bucket/aws"
+#   version            = "3.0.0"
+#   acl                = var.s3_store_jar["acl"]
+#   enabled            = var.s3_store_jar["enabled"]
+#   user_enabled       = var.s3_store_jar["user_enabled"]
+#   versioning_enabled = var.s3_store_jar["versioning_enabled"]
+#   name               = "${var.globals["namespace"]}-${var.globals["stage"]}-store-jar"
+#   stage              = var.globals["stage"]
+#   namespace          = var.globals["namespace"]
+#   bucket_key_enabled = var.s3_store_jar["bucket_key_enabled"]
+#   kms_master_key_arn = module.kms_key_s3.key_arn
+#   sse_algorithm      = var.s3_store_jar["sse_algorithm"]
+# }
 
-# EC2
+# ECS
+# module "ecs_cluster" {
+#   source = "cloudposse/ecs-cluster/aws"
+# version = "0.3.1"
+#   container_insights_enabled      = true
+#   capacity_providers_fargate      = true
+#   capacity_providers_fargate_spot = true
+#   capacity_providers_ec2 = {
+#     default = {
+#       instance_type               = "t3.micro"
+#       security_group_ids          = [module.vpc.default_security_group_id]
+#       subnet_ids                  = module.vpc.public_subnets
+#       associate_public_ip_address = false
+#       min_size                    = 0
+#       max_size                    = 2
+#     }
+#   }
+# }
+
+#### Only Test - EC2
 data "aws_iam_policy_document" "ec2" {
   statement {
     effect = "Allow"
@@ -111,27 +131,15 @@ resource "aws_iam_role" "ec2" {
   assume_role_policy = data.aws_iam_policy_document.ec2.json
 }
 
-module "aws_key_pair" {
-  source                = "cloudposse/key-pair/aws"
-  version               = "0.18.3"
-  namespace             = var.globals["namespace"]
-  stage                 = var.globals["stage"]
-  name                  = "${var.globals["namespace"]}-${var.globals["stage"]}"
-  ssh_public_key_path   = var.ec2_springboot["ssh_public_key_path"]
-  generate_ssh_key      = var.ec2_springboot["generate_ssh_key"]
-  private_key_extension = var.ec2_springboot["private_key_extension"]
-  public_key_extension  = var.ec2_springboot["public_key_extension"]
-}
-
 module "ec2_instance" {
   source                      = "cloudposse/ec2-instance/aws"
   version                     = "0.47.1"
-  ssh_key_pair                = module.aws_key_pair.key_name
   vpc_id                      = module.vpc.vpc_id
-  subnet                      = module.subnets.public_subnet_ids[0]
-  security_groups             = [module.vpc.vpc_default_security_group_id]
+  ssh_key_pair                = var.ec2["ssh_key_pair"]
+  subnet                      = module.vpc.public_subnets[0]
+  security_groups             = [module.vpc.default_security_group_id]
   associate_public_ip_address = true
-  name                        = "${var.globals["namespace"]}-${var.globals["stage"]}-springboot"
+  name                        = var.globals["shortname"]
   namespace                   = var.globals["namespace"]
   stage                       = var.globals["stage"]
   additional_ips_count        = 1
