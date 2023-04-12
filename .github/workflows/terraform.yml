@@ -18,7 +18,7 @@ jobs:
       - name: Terraform Plan
         id: plan
         run: |
-          cd ./infrastructure/terraform
+          cd ${GITHUB_WORKSPACE}/infrastructure/terraform
           terraform plan -var-file=productin.tfvars
       - name: Submit plan for approval
         uses: jbergknoff/github-action-wait-for-terraform-plan-approval@v1
@@ -34,5 +34,5 @@ jobs:
           timeout_seconds: 1200
       - name: Terraform Apply
         run: |
-          cd ./infrastructure/terraform
+          cd ${GITHUB_WORKSPACE}/infrastructure/terraform
           terraform apply -auto-approve terraform_production.tfplan
