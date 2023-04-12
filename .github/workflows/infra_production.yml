@@ -1,4 +1,4 @@
-name: building java spring and deploy on aws
+name: deploy infrastructure
 on:
   push:
     branches: [main]
