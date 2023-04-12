@@ -44,5 +44,7 @@ s3 = {
 }
 
 ec2 = {
-  ssh_key_pair = "ubuntu"
+  ssh_key_pair                = "ubuntu"
+  associate_public_ip_address = true
+  ebs_volume_size             = 30
 }

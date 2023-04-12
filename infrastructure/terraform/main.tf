@@ -103,12 +103,11 @@ module "ec2_instance" {
   ssh_key_pair                = var.ec2["ssh_key_pair"]
   subnet                      = module.vpc.public_subnets[0]
   security_groups             = [module.vpc.default_security_group_id]
-  associate_public_ip_address = false
+  associate_public_ip_address = var.ec2["associate_public_ip_address"]
   name                        = var.globals["shortname"]
   namespace                   = var.globals["namespace"]
   stage                       = var.globals["stage"]
-  additional_ips_count        = 1
-  ebs_volume_count            = 2
+  ebs_volume_size             = var.ec2["ebs_volume_size"]
   security_group_rules = [
     {
       type        = "egress"
