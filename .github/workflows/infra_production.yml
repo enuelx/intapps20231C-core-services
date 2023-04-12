@@ -13,12 +13,12 @@ permissions:
 
 jobs:
   auth:
-    uses: ./.github/workflows/reusables/get_aws_credentials.yml@feat-deploy-infra
+    uses: ./.github/workflows/reusables/get_aws_credentials.yml
     with:
       environment: ${{ github.ref_name }}
     secrets: inherit
   provisioning:
-    uses: ./.github/workflows/reusables/terraform.yml@feat-deploy-infra
+    uses: ./.github/workflows/reusables/terraform.yml
     with:
       environment: ${{ github.ref_name }}
     secrets: inherit
