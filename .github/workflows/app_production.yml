@@ -18,11 +18,13 @@ jobs:
       environment: ${{ github.ref_name }}
     secrets: inherit
   setup:
+    needs: ["auth"]
     uses: ./.github/workflows/setup_java.yml
     with:
       environment: ${{ github.ref_name }}
     secrets: inherit
   upload-jar-to-registry:
+    needs: ["setup"]
     uses: ./.github/workflows/maven_upload_jar.yml
     with:
       environment: ${{ github.ref_name }}

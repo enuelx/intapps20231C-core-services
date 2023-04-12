@@ -18,6 +18,7 @@ jobs:
       environment: ${{ github.ref_name }}
     secrets: inherit
   provisioning:
+    needs: ["auth"]
     uses: ./.github/workflows/terraform.yml
     with:
       environment: ${{ github.ref_name }}

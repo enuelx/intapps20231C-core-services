@@ -14,11 +14,13 @@ jobs:
       environment: preview
     secrets: inherit
   setup:
+    needs: ["build"]
     uses: ./.github/workflows/setup_java.yml
     with:
       environment: preview
     secrets: inherit
   test:
+    needs: ["setup"]
     uses: ./.github/workflows/maven_tests.yml
     with:
       environment: preview
