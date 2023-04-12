@@ -13,6 +13,7 @@ jobs:
     environment:
       name: ${{ inputs.environment }}
     steps:
+      - uses: actions/checkout@v2
       - name: Build package
         run: mvn versions:set -DnewVersion=0.0.2-${GITHUB_SHA::6}-RELEASE && mvn --batch-mode clean deploy -DskipTests=true
         env:
