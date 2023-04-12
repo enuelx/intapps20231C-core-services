@@ -103,7 +103,7 @@ module "ec2_instance" {
   ssh_key_pair                = var.ec2["ssh_key_pair"]
   subnet                      = module.vpc.public_subnets[0]
   security_groups             = [module.vpc.default_security_group_id]
-  associate_public_ip_address = true
+  associate_public_ip_address = false
   name                        = var.globals["shortname"]
   namespace                   = var.globals["namespace"]
   stage                       = var.globals["stage"]
