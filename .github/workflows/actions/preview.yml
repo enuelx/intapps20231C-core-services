@@ -9,17 +9,17 @@ permissions:
 
 jobs:
   build:
-    uses: ./.github/workflows/reusables/get_aws_credentials.yml
+    uses: ./.github/workflows/get_aws_credentials.yml
     with:
       environment: preview
     secrets: inherit
   setup:
-    uses: ./.github/workflows/reusables/setup_java.yml
+    uses: ./.github/workflows/setup_java.yml
     with:
       environment: preview
     secrets: inherit
   test:
-    uses: ./.github/workflows/reusables/maven_tests.yml
+    uses: ./.github/workflows/maven_tests.yml
     with:
       environment: preview
     secrets: inherit
