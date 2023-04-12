@@ -7,6 +7,10 @@ on:
       - "infraestructure/**"
       - "README.md"
 jobs:
+  checkout:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
   publish-and-deploy:
     runs-on: ubuntu-latest
     environment:
