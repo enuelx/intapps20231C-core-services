@@ -10,44 +10,23 @@ jobs:
   publish-and-deploy:
     runs-on: ubuntu-latest
     environment:
-      name: production
+      name: ${{ github.ref_name }}
     permissions:
       id-token: write
       contents: read
+      actions: read
     steps:
-      - uses: actions/checkout@v2
-      - name: Setup java
-        uses: actions/setup-java@v3
+      - uses: ./.github/workflows/reusables/setup_java.yml
         with:
-          java-version: "19"
-          distribution: adopt
-          cache: maven
-      - name: Cache local Maven repository
-        uses: actions/cache@v3
+          environment: ${{ github.ref_name }}
+      - uses: ./.github/workflows/reusables/get_aws_credentials.yml
         with:
-          path: ~/.m2/repository
-          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
-          restore-keys: |
-            ${{ runner.os }}-maven-
-      - name: Unit Tests
-        run: mvn clean package
-      - name: Build package
-        run: mvn versions:set -DnewVersion=0.0.2-${GITHUB_SHA::6}-RELEASE && mvn --batch-mode clean deploy -DskipTests=true
-        env:
-          GITHUB_TOKEN: ${{ secrets.JAVA_DEPLOY_TOKEN }}
-      - run: mkdir production && cp target/*.jar production
-      - name: Upload package
-        uses: actions/upload-artifact@v3
+          environment: ${{ github.ref_name }}
+        secrets: inherit
+      - uses: ./.github/workflows/reusables/maven_upload_jar.yml
         with:
-          name: core-services
-          path: production
-          retention-days: 15
-      # - name: configure AWS credentials
-      #   uses: aws-actions/configure-aws-credentials@v1.7.0
-      #   with:
-      #     aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY }}
-      #     aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-      #     aws-region: us-east-1
+          environment: ${{ github.ref_name }}
+        secrets: inherit
       # - name: upload jar on bucket s3
       #   uses: reggionick/s3-deploy@v3
       #   with:

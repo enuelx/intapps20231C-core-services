@@ -8,34 +8,16 @@ jobs:
   provisioning:
     runs-on: ubuntu-latest
     environment:
-      name: production
+      name: ${{ github.ref_name }}
     permissions:
       id-token: write
       contents: read
     steps:
-      - uses: actions/checkout@v2
-
-      # - name: configure AWS credentials
-      #   uses: aws-actions/configure-aws-credentials@v1.7.0
-      #   with:
-      #     aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY }}
-      #     aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-      #     aws-region: us-east-1
-      - name: setup Terraform CLI
-        uses: hashicorp/setup-terraform@v2.0.2
-
-      # - name: terraform init and plan
-      #   run: |
-      #     echo "tfpath ${{ github.event.inputs.tfpath }}"
-      #     echo "** Running Terraform Init**"
-      #     terraform init
-
-      #     echo "** Running Terraform Validate**"
-      #     terraform validate
-
-      #     echo "** Running Terraform Plan**"
-      #     terraform plan
-
-      #   #        echo "** Running Terraform Apply**"
-      #   #        terraform apply -auto-approve
-      #   working-directory: ${{ github.event.inputs.tfpath }}
+      - uses: ./.github/workflows/reusables/get_aws_credentials.yml
+        with:
+          environment: ${{ github.ref_name }}
+        secrets: inherit
+      - uses: ./.github/workflows/reusables/terraform.yml
+        with:
+          environment: ${{ github.ref_name }}
+        secrets: inherit

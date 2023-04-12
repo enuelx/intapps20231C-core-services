@@ -1,0 +1,26 @@
+name: Upload JAR on github registry
+
+on:
+  workflow_call:
+    inputs:
+      environment:
+        required: true
+        type: string
+
+jobs:
+  upload:
+    runs-on: ubuntu-latest
+    environment:
+      name: ${{ inputs.environment }}
+    steps:
+      - name: Build package
+        run: mvn versions:set -DnewVersion=0.0.2-${GITHUB_SHA::6}-RELEASE && mvn --batch-mode clean deploy -DskipTests=true
+        env:
+          GITHUB_TOKEN: ${{ secrets.JAVA_DEPLOY_TOKEN }}
+      - run: mkdir production && cp target/*.jar production
+      - name: Upload package
+        uses: actions/upload-artifact@v3
+        with:
+          name: core-services
+          path: production
+          retention-days: 15

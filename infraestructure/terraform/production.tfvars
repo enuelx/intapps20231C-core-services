@@ -1,8 +1,9 @@
-region = "us-east-1"
+region = "sa-east-1"
 
 globals = {
   namespace = "core"
   stage     = "prod"
+  shortname = "intapps"
 }
 
 vpc = {
@@ -26,10 +27,11 @@ mq_broker = {
   engine_version             = "3.10.10"
   host_instance_type         = "mq.t3.micro"
   publicly_accessible        = false
-  general_log_enabled        = true
-  audit_log_enabled          = true
+  general_log_enabled        = false
+  audit_log_enabled          = false
   encryption_enabled         = true
   use_aws_owned_key          = true
+  allowed_ingress_ports      = [8162, 5671]
 }
 
 s3_store_jar = {
@@ -41,9 +43,6 @@ s3_store_jar = {
   sse_algorithm      = "aws:kms"
 }
 
-ec2_springboot = {
-  ssh_public_key_path   = "/secrets"
-  generate_ssh_key      = "true"
-  private_key_extension = ".pem"
-  public_key_extension  = ".pub"
+ec2 = {
+  ssh_key_pair = "ubuntu"
 }

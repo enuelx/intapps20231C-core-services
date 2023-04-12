@@ -19,6 +19,6 @@ variable "s3_store_jar" {
   description = "Map for bucket to store jar's"
 }
 
-variable "ec2_springboot" {
+variable "ec2" {
   description = "Map for webapp ec2 instance"
 }
