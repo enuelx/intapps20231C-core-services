@@ -108,6 +108,7 @@ module "ec2_instance" {
   namespace                   = var.globals["namespace"]
   stage                       = var.globals["stage"]
   ebs_volume_size             = var.ec2["ebs_volume_size"]
+  ebs_volume_count            = var.ec2["ebs_volume_count"]
   security_group_rules = [
     {
       type        = "egress"
