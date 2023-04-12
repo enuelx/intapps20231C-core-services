@@ -3,20 +3,31 @@ name: preview to main
 on:
   pull_request:
     branches: [main]
+
 permissions:
   id-token: write
   contents: read
   actions: read
 
 jobs:
-  setup:
-    uses: ./.github/workflows/setup_java.yml
-    with:
-      environment: preview
-    secrets: inherit
-  test:
-    needs: ["setup"]
-    uses: ./.github/workflows/maven_tests.yml
-    with:
-      environment: preview
-    secrets: inherit
+  tests:
+    runs-on: ubuntu-latest
+    environment:
+      name: ${{ github.ref_name }}
+    steps:
+      - uses: actions/checkout@v2
+      - name: Setup java
+        uses: actions/setup-java@v3
+        with:
+          java-version: "17"
+          distribution: adopt
+          cache: maven
+      - name: Cache local Maven repository
+        uses: actions/cache@v3
+        with:
+          path: ~/.m2/repository
+          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+          restore-keys: |
+            ${{ runner.os }}-maven-
+      - name: All tests
+        run: mvn clean install

@@ -15,7 +15,7 @@
 	<name>transport</name>
 	<description>Message Broker made in RabbitMQ with AWS</description>
 	<properties>
-		<java.version>17</java.version>
+		<java.version>19</java.version>
 	</properties>
 	<dependencies>
 		<dependency>
