@@ -13,7 +13,6 @@ permissions:
 
 jobs:
   provisioning:
-    needs: ["auth"]
     uses: ./.github/workflows/terraform.yml
     with:
       environment: ${{ github.ref_name }}
