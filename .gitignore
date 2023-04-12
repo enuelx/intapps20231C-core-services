@@ -35,3 +35,4 @@ build/
 
 ### Terraform
 **/.terraform/**
+**/.terraform.lock.hcl/**
