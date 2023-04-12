@@ -21,13 +21,13 @@ jobs:
       contents: read
       actions: read
     steps:
-      - uses: .github/workflows/reusables/setup_java.yml
+      - uses: ./workflows/reusables/setup_java.yml
         with:
           environment: ${{ github.ref_name }}
-      - uses: .github/workflows/reusables/get_aws_credentials.yml
+      - uses: ./workflows/reusables/get_aws_credentials.yml
         with:
           environment: ${{ github.ref_name }}
-      - uses: .github/workflows/reusables/maven_upload_jar.yml
+      - uses: ./workflows/reusables/maven_upload_jar.yml
         with:
           environment: ${{ github.ref_name }}
       # - name: upload jar on bucket s3
