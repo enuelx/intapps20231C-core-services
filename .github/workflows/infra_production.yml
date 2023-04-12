@@ -5,18 +5,20 @@ on:
     paths:
       - "infraestructure/**"
       - ".github/**"
+
+permissions:
+  id-token: write
+  contents: read
+  actions: read
+
 jobs:
+  auth:
+    uses: .github/workflows/reusables/get_aws_credentials.yml
+    with:
+      environment: ${{ github.ref_name }}
+    secrets: inherit
   provisioning:
-    runs-on: ubuntu-latest
-    environment:
-      name: ${{ github.ref_name }}
-    permissions:
-      id-token: write
-      contents: read
-    steps:
-      - uses: .github/workflows/reusables/get_aws_credentials.yml
-        with:
-          environment: ${{ github.ref_name }}
-      - uses: .github/workflows/reusables/terraform.yml
-        with:
-          environment: ${{ github.ref_name }}
+    uses: .github/workflows/reusables/terraform.yml
+    with:
+      environment: ${{ github.ref_name }}
+    secrets: inherit

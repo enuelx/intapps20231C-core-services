@@ -6,25 +6,28 @@ on:
       - "docs/**"
       - "infraestructure/**"
       - "README.md"
+permissions:
+  id-token: write
+  contents: read
+  actions: read
+
 jobs:
-  publish-and-deploy:
-    runs-on: ubuntu-latest
-    environment:
-      name: ${{ github.ref_name }}
-    permissions:
-      id-token: write
-      contents: read
-      actions: read
-    steps:
-      - uses: .github/workflows/reusables/setup_java.yml
-        with:
-          environment: ${{ github.ref_name }}
-      - uses: .github/workflows/reusables/get_aws_credentials.yml
-        with:
-          environment: ${{ github.ref_name }}
-      - uses: .github/workflows/reusables/maven_upload_jar.yml
-        with:
-          environment: ${{ github.ref_name }}
+  setup:
+    uses: github/workflows/reusables/setup_java.yml
+    with:
+      environment: ${{ github.ref_name }}
+    secrets: inherit
+  auth:
+    uses: .github/workflows/reusables/get_aws_credentials.yml
+    with:
+      environment: ${{ github.ref_name }}
+    secrets: inherit
+  upload-jar-to-registry:
+    uses: .github/workflows/reusables/maven_upload_jar.yml
+    with:
+      environment: ${{ github.ref_name }}
+    secrets:
+      inherit
       # - name: upload jar on bucket s3
       #   uses: reggionick/s3-deploy@v3
       #   with:
