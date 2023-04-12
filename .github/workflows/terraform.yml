@@ -15,11 +15,11 @@ jobs:
     steps:
       - name: setup Terraform CLI
         uses: hashicorp/setup-terraform@v2.0.2
+      - name: Terraform Init
+        run: terraform -chdir="./infrastructure/terraform" init -input=false
       - name: Terraform Plan
         id: plan
-        run: |
-          cd infrastructure && cd terraform
-          terraform plan -var-file=production.tfvars
+        run: terraform -chdir="./infrastructure/terraform" plan -var-file=production.tfvars -no-color
       - name: Submit plan for approval
         uses: jbergknoff/github-action-wait-for-terraform-plan-approval@v1
         id: submit_plan
@@ -33,6 +33,4 @@ jobs:
           plan_id: ${{steps.submit_plan.outputs.plan_id}}
           timeout_seconds: 1200
       - name: Terraform Apply
-        run: |
-          cd infrastructure && cd terraform
-          terraform apply -auto-approve terraform_production.tfplan
+        run: terraform -chdir="./infrastructure/terraform" apply -auto-approve terraform_production.tfplan
