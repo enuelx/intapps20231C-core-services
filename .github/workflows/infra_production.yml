@@ -21,8 +21,6 @@ jobs:
       - uses: ./.github/workflows/reusables/get_aws_credentials.yml
         with:
           environment: ${{ github.ref_name }}
-        secrets: inherit
       - uses: ./.github/workflows/reusables/terraform.yml
         with:
           environment: ${{ github.ref_name }}
-        secrets: inherit
