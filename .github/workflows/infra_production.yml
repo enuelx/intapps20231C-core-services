@@ -12,11 +12,6 @@ permissions:
   actions: read
 
 jobs:
-  auth:
-    uses: ./.github/workflows/get_aws_credentials.yml
-    with:
-      environment: ${{ github.ref_name }}
-    secrets: inherit
   provisioning:
     needs: ["auth"]
     uses: ./.github/workflows/terraform.yml

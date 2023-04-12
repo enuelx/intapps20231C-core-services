@@ -1,4 +1,4 @@
-name: Setup Java with POM
+name: deploy terraform
 
 on:
   workflow_call:
@@ -8,6 +8,11 @@ on:
         type: string
 
 jobs:
+  auth:
+    uses: ./.github/workflows/get_aws_credentials.yml
+    with:
+      environment: ${{ github.ref_name }}
+    secrets: inherit
   deploy:
     runs-on: ubuntu-latest
     environment:
