@@ -75,41 +75,6 @@ module "mq_broker" {
   allowed_ingress_ports      = var.mq_broker["allowed_ingress_ports"]
 }
 
-# # S3
-# module "s3_store_jar" {
-#   source             = "cloudposse/s3-bucket/aws"
-#   version            = "3.0.0"
-#   acl                = var.s3_store_jar["acl"]
-#   enabled            = var.s3_store_jar["enabled"]
-#   user_enabled       = var.s3_store_jar["user_enabled"]
-#   versioning_enabled = var.s3_store_jar["versioning_enabled"]
-#   name               = "${var.globals["namespace"]}-${var.globals["stage"]}-store-jar"
-#   stage              = var.globals["stage"]
-#   namespace          = var.globals["namespace"]
-#   bucket_key_enabled = var.s3_store_jar["bucket_key_enabled"]
-#   kms_master_key_arn = module.kms_key_s3.key_arn
-#   sse_algorithm      = var.s3_store_jar["sse_algorithm"]
-# }
-
-# ECS
-# module "ecs_cluster" {
-#   source = "cloudposse/ecs-cluster/aws"
-# version = "0.3.1"
-#   container_insights_enabled      = true
-#   capacity_providers_fargate      = true
-#   capacity_providers_fargate_spot = true
-#   capacity_providers_ec2 = {
-#     default = {
-#       instance_type               = "t3.micro"
-#       security_group_ids          = [module.vpc.default_security_group_id]
-#       subnet_ids                  = module.vpc.public_subnets
-#       associate_public_ip_address = false
-#       min_size                    = 0
-#       max_size                    = 2
-#     }
-#   }
-# }
-
 #### Only Test - EC2
 data "aws_iam_policy_document" "ec2" {
   statement {
@@ -175,3 +140,39 @@ module "ec2_instance" {
     }
   ]
 }
+
+
+# # S3
+# module "s3_store_jar" {
+#   source             = "cloudposse/s3-bucket/aws"
+#   version            = "3.0.0"
+#   acl                = var.s3_store_jar["acl"]
+#   enabled            = var.s3_store_jar["enabled"]
+#   user_enabled       = var.s3_store_jar["user_enabled"]
+#   versioning_enabled = var.s3_store_jar["versioning_enabled"]
+#   name               = "${var.globals["namespace"]}-${var.globals["stage"]}-store-jar"
+#   stage              = var.globals["stage"]
+#   namespace          = var.globals["namespace"]
+#   bucket_key_enabled = var.s3_store_jar["bucket_key_enabled"]
+#   kms_master_key_arn = module.kms_key_s3.key_arn
+#   sse_algorithm      = var.s3_store_jar["sse_algorithm"]
+# }
+
+# ECS
+# module "ecs_cluster" {
+#   source = "cloudposse/ecs-cluster/aws"
+# version = "0.3.1"
+#   container_insights_enabled      = true
+#   capacity_providers_fargate      = true
+#   capacity_providers_fargate_spot = true
+#   capacity_providers_ec2 = {
+#     default = {
+#       instance_type               = "t3.micro"
+#       security_group_ids          = [module.vpc.default_security_group_id]
+#       subnet_ids                  = module.vpc.public_subnets
+#       associate_public_ip_address = false
+#       min_size                    = 0
+#       max_size                    = 2
+#     }
+#   }
+# }
