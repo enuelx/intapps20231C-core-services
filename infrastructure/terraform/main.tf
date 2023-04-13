@@ -75,6 +75,26 @@ module "mq_broker" {
   allowed_ingress_ports      = var.mq_broker["allowed_ingress_ports"]
 }
 
+resource "aws_ssm_parameter" "ssm_param_mq_broker" {
+  lifecycle {
+    ignore_changes = [value]
+  }
+  name      = "/mq/host"
+  type      = "SecureString"
+  value     = module.mq_broker.primary_amqp_ssl_endpoint
+  overwrite = true
+}
+
+resource "aws_ssm_parameter" "ssm_param_mq_broker" {
+  lifecycle {
+    ignore_changes = [value]
+  }
+  name      = "/mq/dashboard"
+  type      = "SecureString"
+  value     = module.mq_broker.primary_console_url
+  overwrite = true
+}
+
 #### Only Test - EC2
 data "aws_iam_policy_document" "ec2" {
   statement {
