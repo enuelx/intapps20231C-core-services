@@ -75,7 +75,7 @@ module "mq_broker" {
   allowed_ingress_ports      = var.mq_broker["allowed_ingress_ports"]
 }
 
-resource "aws_ssm_parameter" "ssm_param_mq_broker" {
+resource "aws_ssm_parameter" "ssm_param_mq_broker_host" {
   lifecycle {
     ignore_changes = [value]
   }
@@ -85,7 +85,7 @@ resource "aws_ssm_parameter" "ssm_param_mq_broker" {
   overwrite = true
 }
 
-resource "aws_ssm_parameter" "ssm_param_mq_broker" {
+resource "aws_ssm_parameter" "ssm_param_mq_broker_dashboard" {
   lifecycle {
     ignore_changes = [value]
   }
