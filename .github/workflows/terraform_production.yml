@@ -2,9 +2,10 @@ name: deploy terraform
 
 on:
   push:
-    branches: [main]
+    branches: [infra/*]
     paths:
       - "infrastructure/**"
+  workflow_dispatch:
 
 permissions:
   id-token: write
@@ -15,7 +16,7 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     environment:
-      name: ${{ github.ref_name }}
+      name: preview
     steps:
       - uses: actions/checkout@v2
       - name: Configure AWS credentials
@@ -32,5 +33,3 @@ jobs:
       - name: Terraform Plan
         id: plan
         run: terraform -chdir="./infrastructure/terraform" plan -var-file=production.tfvars -no-color -out terraform.tfplan
-      - name: Terraform Apply
-        run: terraform -chdir="./infrastructure/terraform" apply -auto-approve terraform.tfplan

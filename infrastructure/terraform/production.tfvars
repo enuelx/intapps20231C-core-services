@@ -34,7 +34,7 @@ mq_broker = {
   allowed_ingress_ports      = [8162, 5671]
 }
 
-s3 = {
+s3_store_jar = {
   enabled            = true
   user_enabled       = false
   versioning_enabled = true
