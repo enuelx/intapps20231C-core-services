@@ -193,17 +193,17 @@ module "ec2_instance" {
 }
 
 # S3
-module "s3_store_jar" {
+module "s3_intapps" {
   source             = "cloudposse/s3-bucket/aws"
   version            = "3.0.0"
-  acl                = var.s3_store_jar["acl"]
-  enabled            = var.s3_store_jar["enabled"]
-  user_enabled       = var.s3_store_jar["user_enabled"]
-  versioning_enabled = var.s3_store_jar["versioning_enabled"]
-  name               = "${var.globals["namespace"]}-${var.globals["stage"]}-store-jar"
+  acl                = var.s3_intapps["acl"]
+  enabled            = var.s3_intapps["enabled"]
+  user_enabled       = var.s3_intapps["user_enabled"]
+  versioning_enabled = var.s3_intapps["versioning_enabled"]
+  name               = var.s3_intapps["name"]
   stage              = var.globals["stage"]
   namespace          = var.globals["namespace"]
-  bucket_key_enabled = var.s3_store_jar["bucket_key_enabled"]
+  bucket_key_enabled = var.s3_intapps["bucket_key_enabled"]
   kms_master_key_arn = module.kms_key_s3.key_arn
-  sse_algorithm      = var.s3_store_jar["sse_algorithm"]
+  sse_algorithm      = var.s3_intapps["sse_algorithm"]
 }
