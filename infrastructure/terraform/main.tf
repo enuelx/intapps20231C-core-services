@@ -70,50 +70,82 @@ module "mq_broker" {
   encryption_enabled         = var.mq_broker["encryption_enabled"]
   use_aws_owned_key          = var.mq_broker["use_aws_owned_key"]
   vpc_id                     = module.vpc.vpc_id
-  subnet_ids                 = [module.vpc.private_subnets[0]]
+  subnet_ids                 = [module.vpc.public_subnets[0]]
   allowed_security_group_ids = [module.vpc.default_security_group_id]
   allowed_ingress_ports      = var.mq_broker["allowed_ingress_ports"]
 }
 
-resource "aws_ssm_parameter" "ssm_param_mq_broker_host" {
-  lifecycle {
-    ignore_changes = [value]
-  }
-  name      = "/mq/host"
-  type      = "SecureString"
-  value     = module.mq_broker.primary_amqp_ssl_endpoint
+resource "aws_ssm_parameter" "ssm_param_broker_id" {
+  name      = "/mq/mq_broker_id"
+  type      = "String"
+  value     = module.mq_broker.broker_id
   overwrite = true
 }
 
+resource "aws_ssm_parameter" "ssm_param_broker_endpoint" {
+  name      = "/mq/mq_broker_endpoint"
+  type      = "String"
+  value     = "amqps://${module.mq_broker.broker_id}.mq.sa-east-1.amazonaws.com"
+  overwrite = true
+}
+
+
 resource "aws_ssm_parameter" "ssm_param_mq_broker_dashboard" {
-  lifecycle {
-    ignore_changes = [value]
-  }
-  name      = "/mq/dashboard"
-  type      = "SecureString"
+  name      = "/mq/mq_broker_dashboard"
+  type      = "String"
   value     = module.mq_broker.primary_console_url
   overwrite = true
 }
 
-#### Only Test - EC2
-data "aws_iam_policy_document" "ec2" {
-  statement {
-    effect = "Allow"
-
-    actions = [
-      "sts:AssumeRole"
-    ]
-
-    principals {
-      type        = "Service"
-      identifiers = ["ec2.amazonaws.com"]
+#### EC2
+resource "aws_iam_role" "ec2_instance" {
+  name               = "web_iam_role"
+  assume_role_policy = <<EOF
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Action": "sts:AssumeRole",
+      "Principal": {
+        "Service": "ec2.amazonaws.com"
+      },
+      "Effect": "Allow",
+      "Sid": ""
     }
-  }
+  ]
+}
+EOF
 }
 
-resource "aws_iam_role" "ec2" {
-  name               = "${var.globals["namespace"]}-${var.globals["stage"]}-ec2"
-  assume_role_policy = data.aws_iam_policy_document.ec2.json
+resource "aws_iam_role_policy" "ec2_instance" {
+  name   = "${var.globals["namespace"]}-${var.globals["stage"]}-ec2"
+  role   = aws_iam_role.ec2_instance.id
+  policy = <<EOF
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Action": ["s3:ListBucket"],
+      "Resource": ["arn:aws:s3:::*"]
+    },
+    {
+      "Effect": "Allow",
+      "Action": [
+        "s3:GetObject",
+        "s3:DeleteObject",
+        "s3:GetObjectVersion"
+      ],
+      "Resource": ["arn:aws:s3:::*/*"]
+    }
+  ]
+}
+EOF
+}
+
+resource "aws_iam_instance_profile" "ec2_instance" {
+  name = "${var.globals["namespace"]}-${var.globals["stage"]}-ec2"
+  role = aws_iam_role.ec2_instance.name
 }
 
 module "ec2_instance" {
@@ -127,8 +159,7 @@ module "ec2_instance" {
   name                        = var.globals["shortname"]
   namespace                   = var.globals["namespace"]
   stage                       = var.globals["stage"]
-  ebs_volume_size             = var.ec2["ebs_volume_size"]
-  ebs_volume_count            = var.ec2["ebs_volume_count"]
+  instance_profile            = aws_iam_instance_profile.ec2_instance.name
   security_group_rules = [
     {
       type        = "egress"
@@ -161,38 +192,18 @@ module "ec2_instance" {
   ]
 }
 
-
-# # S3
-# module "s3_store_jar" {
-#   source             = "cloudposse/s3-bucket/aws"
-#   version            = "3.0.0"
-#   acl                = var.s3_store_jar["acl"]
-#   enabled            = var.s3_store_jar["enabled"]
-#   user_enabled       = var.s3_store_jar["user_enabled"]
-#   versioning_enabled = var.s3_store_jar["versioning_enabled"]
-#   name               = "${var.globals["namespace"]}-${var.globals["stage"]}-store-jar"
-#   stage              = var.globals["stage"]
-#   namespace          = var.globals["namespace"]
-#   bucket_key_enabled = var.s3_store_jar["bucket_key_enabled"]
-#   kms_master_key_arn = module.kms_key_s3.key_arn
-#   sse_algorithm      = var.s3_store_jar["sse_algorithm"]
-# }
-
-# ECS
-# module "ecs_cluster" {
-#   source = "cloudposse/ecs-cluster/aws"
-# version = "0.3.1"
-#   container_insights_enabled      = true
-#   capacity_providers_fargate      = true
-#   capacity_providers_fargate_spot = true
-#   capacity_providers_ec2 = {
-#     default = {
-#       instance_type               = "t3.micro"
-#       security_group_ids          = [module.vpc.default_security_group_id]
-#       subnet_ids                  = module.vpc.public_subnets
-#       associate_public_ip_address = false
-#       min_size                    = 0
-#       max_size                    = 2
-#     }
-#   }
-# }
+# S3
+module "s3_store_jar" {
+  source             = "cloudposse/s3-bucket/aws"
+  version            = "3.0.0"
+  acl                = var.s3_store_jar["acl"]
+  enabled            = var.s3_store_jar["enabled"]
+  user_enabled       = var.s3_store_jar["user_enabled"]
+  versioning_enabled = var.s3_store_jar["versioning_enabled"]
+  name               = "${var.globals["namespace"]}-${var.globals["stage"]}-store-jar"
+  stage              = var.globals["stage"]
+  namespace          = var.globals["namespace"]
+  bucket_key_enabled = var.s3_store_jar["bucket_key_enabled"]
+  kms_master_key_arn = module.kms_key_s3.key_arn
+  sse_algorithm      = var.s3_store_jar["sse_algorithm"]
+}
