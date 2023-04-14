@@ -15,7 +15,7 @@ variable "mq_broker" {
   description = "Map for RabbitMQ on AWS MQ"
 }
 
-variable "s3_store_jar" {
+variable "s3_intapps" {
   description = "Map for bucket"
 }
 
