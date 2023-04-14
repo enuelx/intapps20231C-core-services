@@ -18,41 +18,43 @@ jobs:
       name: ${{ github.ref_name }}
     steps:
       - uses: actions/checkout@v2
-      - name: Configure AWS credentials
+      - name: configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v2
         with:
           role-to-assume: ${{ secrets.AWS_ROLE }}
           role-session-name: GitHubActions
           audience: sts.amazonaws.com
           aws-region: sa-east-1
-      - name: Setup java
+      - name: setup java
         uses: actions/setup-java@v3
         with:
           java-version: "17"
           distribution: adopt
           cache: maven
-      - name: Cache local Maven repository
+      - name: cache local Maven repository
         uses: actions/cache@v3
         with:
           path: ~/.m2/repository
           key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
           restore-keys: |
             ${{ runner.os }}-maven-
-      - name: Build package
+      - name: build package
         run: mvn versions:set -DnewVersion=0.0.2-${GITHUB_SHA::6}-RELEASE && mvn --batch-mode clean deploy -DskipTests=true
         env:
           GITHUB_TOKEN: ${{ secrets.JAVA_DEPLOY_TOKEN }}
       - run: mkdir production && cp target/*.jar production
-      - name: Upload package
+      - name: upload package
         uses: actions/upload-artifact@v3
         with:
           name: core-services
           path: production
           retention-days: 15
-      - name: upload jar on bucket s3
-        uses: shallwefootball/s3-upload-action@master
+      - name: copy jar via ssh key
+        uses: appleboy/scp-action@v0.1.4
         with:
-          aws_key_id: ${{ secrets.AWS_KEY_ID }}
-          aws_secret_access_key: ${{ secrets.AWS_SECRET_ACCESS_KEY}}
-          aws_bucket: ${{ secrets.AWS_BUCKET }}
-          source_dir: production
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USERNAME }}
+          key: ${{ secrets.EC2_KEY }}
+          source: production
+          target: /home/ubuntu
+          rm: true
