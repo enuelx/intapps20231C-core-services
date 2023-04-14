@@ -53,13 +53,6 @@ jobs:
         uses: reggionick/s3-deploy@v3
         with:
           folder: production
-          bucket: core-prod-store-jar
+          bucket: core-prod-intapps
           bucket-region: sa-east-1
           delete-removed: true
-      # - name: notification on microsoft teams
-      #   uses: toko-bifrost/ms-teams-deploy-card@master
-      #   if: always()
-      #   with:
-      #     github-token: ${{ secrets.JAVA_DEPLOY_TOKEN }}
-      #     webhook-uri: ${{ secrets.MICROSOFT_TEAMS_WEBHOOK_URI }}
-      #     timezone: America/Argentina/Buenos_Aires
