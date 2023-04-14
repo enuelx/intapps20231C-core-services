@@ -70,13 +70,9 @@ jobs:
           target: /home/ubuntu/core-services
           rm: true
       - name: Start app
-        env:
-          PRIVATE_KEY: ${{ secrets.EC2_KEY }}
-          HOSTNAME: ${{secrets.EC2_HOST}}
-          USER_NAME: ${secrets.EC2_USERNAME}
-        run: |
-          echo "$PRIVATE_KEY" > private_key && chmod 400 private_key
-          ssh -o StrictHostKeyChecking=no -i private_key ${USER_NAME}@${HOSTNAME} '
-              cd /home/ubuntu/core-services/production &&
-              java -jar transport.jar & echo $! > ./pid.file &
-              '
+        uses: appleboy/ssh-action@v0.1.10
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USERNAME }}
+          key: ${{ secrets.EC2_KEY }}
+          script: cd /home/ubuntu/core-services/production && java -jar transport.jar & echo $! > ./pid.file &
