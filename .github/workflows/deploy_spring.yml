@@ -57,7 +57,7 @@ jobs:
       #   run: |
       #     echo "$PRIVATE_KEY" > private_key && chmod 400 private_key
       #     ssh -o StrictHostKeyChecking=no -i private_key ${USER_NAME}@${HOSTNAME} '
-      #         cd /home/ubuntu/core-services &&
+      #         cd /home/ubuntu/core-services/production &&
       #         kill $(cat ./pid.file)
       #         '
       - name: Copy jar via ssh key
@@ -69,14 +69,14 @@ jobs:
           source: production
           target: /home/ubuntu/core-services
           rm: true
-      # - name: Start app
-      #   env:
-      #     PRIVATE_KEY: ${{ secrets.EC2_KEY }}
-      #     HOSTNAME: ${{secrets.EC2_HOST}}
-      #     USER_NAME: ${secrets.EC2_USERNAME}
-      #   run: |
-      #     echo "$PRIVATE_KEY" > private_key && chmod 400 private_key
-      #     ssh -o StrictHostKeyChecking=no -i private_key ${USER_NAME}@${HOSTNAME} '
-      #         cd /home/ubuntu/core-services &&
-      #         java -jar transport.jar & echo $! > ./pid.file &
-      #         '
+      - name: Start app
+        env:
+          PRIVATE_KEY: ${{ secrets.EC2_KEY }}
+          HOSTNAME: ${{secrets.EC2_HOST}}
+          USER_NAME: ${secrets.EC2_USERNAME}
+        run: |
+          echo "$PRIVATE_KEY" > private_key && chmod 400 private_key
+          ssh -o StrictHostKeyChecking=no -i private_key ${USER_NAME}@${HOSTNAME} '
+              cd /home/ubuntu/core-services/production &&
+              java -jar transport.jar & echo $! > ./pid.file &
+              '
