@@ -1,7 +1,7 @@
 name: building java spring and deploy on aws
 on:
   push:
-    branches: [main]
+    #branches: [main]
     paths-ignore:
       - "docs/**"
       - "infrastructure/**"
@@ -42,17 +42,41 @@ jobs:
         run: mvn versions:set -DnewVersion=0.0.2-${GITHUB_SHA::6}-RELEASE && mvn --batch-mode clean deploy -DskipTests=true
         env:
           GITHUB_TOKEN: ${{ secrets.JAVA_DEPLOY_TOKEN }}
-      - run: mkdir production && cp target/*.jar production
+      - run: mkdir production && cp target/transport-0.0.2-${GITHUB_SHA::6}-RELEASE.jar production/transport.jar
       - name: Upload package
         uses: actions/upload-artifact@v3
         with:
           name: core-services
           path: production
           retention-days: 15
-      - name: upload jar on bucket s3
-        uses: reggionick/s3-deploy@v3
+      # - name: Stop app
+      #   env:
+      #     PRIVATE_KEY: ${{ secrets.EC2_KEY }}
+      #     HOSTNAME: ${{secrets.EC2_HOST}}
+      #     USER_NAME: ${secrets.EC2_USERNAME}
+      #   run: |
+      #     echo "$PRIVATE_KEY" > private_key && chmod 400 private_key
+      #     ssh -o StrictHostKeyChecking=no -i private_key ${USER_NAME}@${HOSTNAME} '
+      #         cd /home/ubuntu/core-services &&
+      #         kill $(cat ./pid.file)
+      #         '
+      - name: Copy jar via ssh key
+        uses: appleboy/scp-action@v0.1.4
         with:
-          folder: production
-          bucket: core-prod-intapps
-          bucket-region: sa-east-1
-          delete-removed: true
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USERNAME }}
+          key: ${{ secrets.EC2_KEY }}
+          source: production
+          target: /home/ubuntu/core-services
+          rm: true
+      # - name: Start app
+      #   env:
+      #     PRIVATE_KEY: ${{ secrets.EC2_KEY }}
+      #     HOSTNAME: ${{secrets.EC2_HOST}}
+      #     USER_NAME: ${secrets.EC2_USERNAME}
+      #   run: |
+      #     echo "$PRIVATE_KEY" > private_key && chmod 400 private_key
+      #     ssh -o StrictHostKeyChecking=no -i private_key ${USER_NAME}@${HOSTNAME} '
+      #         cd /home/ubuntu/core-services &&
+      #         java -jar transport.jar & echo $! > ./pid.file &
+      #         '
