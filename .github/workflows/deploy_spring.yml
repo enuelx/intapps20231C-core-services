@@ -31,14 +31,19 @@ jobs:
           java-version: "17"
           distribution: adopt
           cache: maven
-      - run: chmod +x ./infrastructure/scripts/dotenv.sh
-      - name: Set DOTENV
-        run: ./infrastructure/scripts/dotenv.sh
+      - run: rm ./src/main/resources/application.yml
+      - name: Setup DOTENV
+        uses: cuchi/jinja2-action@v1.2.0
+        with:
+          template: ./infrastructure/templates/dotenv.yml.j2
+          output_file: ./src/main/resourcesapplication.yml
         env:
           RABBITMQ_HOST: ${{ secrets.RABBITMQ_HOST }}
           RABBITMQ_PASSWORD: ${{ secrets.RABBITMQ_PASSWORD }}
           RABBITMQ_PORT: ${{ secrets.RABBITMQ_PORT }}
           RABBITMQ_USERNAME: ${{ secrets.RABBITMQ_USERNAME }}
+
+
 # test 
       - run: cat ./src/main/resources/application.yml
       # - run: cat ./src/main/resources/application.yml
