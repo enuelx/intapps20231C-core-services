@@ -57,13 +57,13 @@ jobs:
           name: core-services
           path: production
           retention-days: 15
-      - name: Stop app
-        uses: appleboy/ssh-action@v0.1.10
-        with:
-          host: ${{ secrets.EC2_HOST }}
-          username: ${{ secrets.EC2_USERNAME }}
-          key: ${{ secrets.EC2_KEY }}
-          script: cd /home/ubuntu/core-services/production && kill $(cat ./pid.file)
+      # - name: Stop app
+      #   uses: appleboy/ssh-action@v0.1.10
+      #   with:
+      #     host: ${{ secrets.EC2_HOST }}
+      #     username: ${{ secrets.EC2_USERNAME }}
+      #     key: ${{ secrets.EC2_KEY }}
+      #     script: cd /home/ubuntu/core-services/production && kill $(cat ./pid.file)
       - name: Copy jar via ssh key
         uses: appleboy/scp-action@v0.1.4
         with:
