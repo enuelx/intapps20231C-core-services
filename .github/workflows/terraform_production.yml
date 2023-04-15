@@ -13,7 +13,7 @@ permissions:
   actions: read
 
 jobs:
-  deploy:
+  tf-deploy:
     runs-on: ubuntu-latest
     environment:
       name: preview

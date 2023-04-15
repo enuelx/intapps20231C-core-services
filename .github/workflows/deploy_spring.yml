@@ -31,6 +31,17 @@ jobs:
           java-version: "17"
           distribution: adopt
           cache: maven
+      - run: rm ./src/main/resources/application.yml
+      - name: Setup DOTENV
+        uses: cuchi/jinja2-action@v1.2.0
+        with:
+          template: infrastructure/templates/dotenv.yml.j2
+          output_file: src/main/resources/application.yml
+        env:
+          RABBITMQ_HOST: ${{ secrets.RABBITMQ_HOST }}
+          RABBITMQ_PASSWORD: ${{ secrets.RABBITMQ_PASSWORD }}
+          RABBITMQ_PORT: ${{ secrets.RABBITMQ_PORT }}
+          RABBITMQ_USERNAME: ${{ secrets.RABBITMQ_USERNAME }}
       - name: Cache local Maven repository
         uses: actions/cache@v3
         with:
@@ -49,17 +60,18 @@ jobs:
           name: core-services
           path: production
           retention-days: 15
-      # - name: Stop app
-      #   env:
-      #     PRIVATE_KEY: ${{ secrets.EC2_KEY }}
-      #     HOSTNAME: ${{secrets.EC2_HOST}}
-      #     USER_NAME: ${secrets.EC2_USERNAME}
-      #   run: |
-      #     echo "$PRIVATE_KEY" > private_key && chmod 400 private_key
-      #     ssh -o StrictHostKeyChecking=no -i private_key ${USER_NAME}@${HOSTNAME} '
-      #         cd /home/ubuntu/core-services &&
-      #         kill $(cat ./pid.file)
-      #         '
+      - name: Stop app
+        uses: appleboy/ssh-action@v0.1.10
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USERNAME }}
+          key: ${{ secrets.EC2_KEY }}
+          script: |
+            if lsof -Pi :8080 -sTCP:LISTEN -t >/dev/null ; then
+              kill -9 $(lsof -i :8080 | awk '{print $2}' | tail -n 1)
+            else
+              echo "puerto 8080 libre"
+            fi
       - name: Copy jar via ssh key
         uses: appleboy/scp-action@v0.1.4
         with:
@@ -69,14 +81,11 @@ jobs:
           source: production
           target: /home/ubuntu/core-services
           rm: true
-      # - name: Start app
-      #   env:
-      #     PRIVATE_KEY: ${{ secrets.EC2_KEY }}
-      #     HOSTNAME: ${{secrets.EC2_HOST}}
-      #     USER_NAME: ${secrets.EC2_USERNAME}
-      #   run: |
-      #     echo "$PRIVATE_KEY" > private_key && chmod 400 private_key
-      #     ssh -o StrictHostKeyChecking=no -i private_key ${USER_NAME}@${HOSTNAME} '
-      #         cd /home/ubuntu/core-services &&
-      #         java -jar transport.jar & echo $! > ./pid.file &
-      #         '
+      - name: Start app
+        uses: appleboy/ssh-action@v0.1.10
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USERNAME }}
+          key: ${{ secrets.EC2_KEY }}
+          script: java -jar /home/ubuntu/core-services/production/transport.jar
+ 

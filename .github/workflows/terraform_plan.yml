@@ -12,7 +12,7 @@ permissions:
   actions: read
 
 jobs:
-  deploy:
+  tf-plan:
     runs-on: ubuntu-latest
     environment:
       name: ${{ github.ref_name }}
