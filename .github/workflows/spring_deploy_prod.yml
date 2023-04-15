@@ -1,4 +1,5 @@
 name: building java spring and deploy on aws
+
 on:
   push:
     #branches: [main]
@@ -6,6 +7,7 @@ on:
       - "docs/**"
       - "infrastructure/**"
       - "README.md"
+
 permissions:
   id-token: write
   contents: read
