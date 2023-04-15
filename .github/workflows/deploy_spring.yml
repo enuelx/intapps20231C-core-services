@@ -60,13 +60,18 @@ jobs:
           name: core-services
           path: production
           retention-days: 15
-      # - name: Stop app
-      #   uses: appleboy/ssh-action@v0.1.10
-      #   with:
-      #     host: ${{ secrets.EC2_HOST }}
-      #     username: ${{ secrets.EC2_USERNAME }}
-      #     key: ${{ secrets.EC2_KEY }}
-      #     script: kill $(cat /home/ubuntu/pid.file)
+      - name: Stop app
+        uses: appleboy/ssh-action@v0.1.10
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USERNAME }}
+          key: ${{ secrets.EC2_KEY }}
+          script: |
+            if lsof -Pi :8080 -sTCP:LISTEN -t >/dev/null ; then
+              kill -9 $(lsof -i :8080 | awk '{print $2}' | tail -n 1)
+            else
+              echo "puerto 8080 libre"
+            fi
       - name: Copy jar via ssh key
         uses: appleboy/scp-action@v0.1.4
         with:
@@ -76,13 +81,6 @@ jobs:
           source: production
           target: /home/ubuntu/core-services
           rm: true
-      # - name: Start app
-      #   uses: appleboy/ssh-action@v0.1.10
-      #   with:
-      #     host: ${{ secrets.EC2_HOST }}
-      #     username: ${{ secrets.EC2_USERNAME }}
-      #     key: ${{ secrets.EC2_KEY }}
-      #     script: cd /home/ubuntu/core-services/production && java -jar transport.jar & echo $! > ./pid.file &
       - name: Start app
         uses: appleboy/ssh-action@v0.1.10
         with:
