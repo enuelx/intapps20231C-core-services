@@ -42,7 +42,15 @@ jobs:
           RABBITMQ_PASSWORD: ${{ secrets.RABBITMQ_PASSWORD }}
           RABBITMQ_PORT: ${{ secrets.RABBITMQ_PORT }}
           RABBITMQ_USERNAME: ${{ secrets.RABBITMQ_USERNAME }}
-      - run: cat ./src/main/resources/application.yml
+
+      - name: Upload package
+        uses: actions/upload-artifact@v3
+        with:
+          name: dot
+          path: ./src/main/resources/application.yml
+          retention-days: 1
+
+
       - name: Cache local Maven repository
         uses: actions/cache@v3
         with:
@@ -61,13 +69,13 @@ jobs:
           name: core-services
           path: production
           retention-days: 15
-      # - name: Stop app
-      #   uses: appleboy/ssh-action@v0.1.10
-      #   with:
-      #     host: ${{ secrets.EC2_HOST }}
-      #     username: ${{ secrets.EC2_USERNAME }}
-      #     key: ${{ secrets.EC2_KEY }}
-      #     script: cd /home/ubuntu/core-services/production && kill $(cat ./pid.file)
+      - name: Stop app
+        uses: appleboy/ssh-action@v0.1.10
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USERNAME }}
+          key: ${{ secrets.EC2_KEY }}
+          script: kill $(cat /home/ubuntu/pid.file)
       - name: Copy jar via ssh key
         uses: appleboy/scp-action@v0.1.4
         with:
