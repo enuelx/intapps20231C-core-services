@@ -1,0 +1,91 @@
+name: building java spring and deploy on aws
+on:
+  push:
+    #branches: [main]
+    paths-ignore:
+      - "docs/**"
+      - "infrastructure/**"
+      - "README.md"
+permissions:
+  id-token: write
+  contents: read
+  actions: read
+
+jobs:
+  deploy_spring:
+    runs-on: ubuntu-latest
+    environment:
+      name: ${{ github.ref_name }}
+    steps:
+      - uses: actions/checkout@v2
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE }}
+          role-session-name: GitHubActions
+          audience: sts.amazonaws.com
+          aws-region: sa-east-1
+      - name: Setup java
+        uses: actions/setup-java@v3
+        with:
+          java-version: "17"
+          distribution: adopt
+          cache: maven
+      - run: rm ./src/main/resources/application.yml
+      - name: Setup DOTENV
+        uses: cuchi/jinja2-action@v1.2.0
+        with:
+          template: infrastructure/templates/dotenv.yml.j2
+          output_file: src/main/resources/application.yml
+        env:
+          RABBITMQ_HOST: ${{ secrets.RABBITMQ_HOST }}
+          RABBITMQ_PASSWORD: ${{ secrets.RABBITMQ_PASSWORD }}
+          RABBITMQ_PORT: ${{ secrets.RABBITMQ_PORT }}
+          RABBITMQ_USERNAME: ${{ secrets.RABBITMQ_USERNAME }}
+      - name: Cache local Maven repository
+        uses: actions/cache@v3
+        with:
+          path: ~/.m2/repository
+          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+          restore-keys: |
+            ${{ runner.os }}-maven-
+      - name: Build package
+        run: mvn versions:set -DnewVersion=0.0.2-${GITHUB_SHA::6}-RELEASE && mvn --batch-mode clean deploy -DskipTests=true
+        env:
+          GITHUB_TOKEN: ${{ secrets.JAVA_DEPLOY_TOKEN }}
+      - run: mkdir production && cp target/transport-0.0.2-${GITHUB_SHA::6}-RELEASE.jar production/transport.jar
+      - name: Upload package
+        uses: actions/upload-artifact@v3
+        with:
+          name: core-services
+          path: production
+          retention-days: 15
+      - name: Stop app
+        uses: appleboy/ssh-action@v0.1.10
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USERNAME }}
+          key: ${{ secrets.EC2_KEY }}
+          script: |
+            if lsof -Pi :8080 -sTCP:LISTEN -t >/dev/null ; then
+              kill -9 $(lsof -i :8080 | awk '{print $2}' | tail -n 1)
+            else
+              echo "puerto 8080 libre"
+            fi
+      - name: Copy jar via ssh key
+        uses: appleboy/scp-action@v0.1.4
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USERNAME }}
+          key: ${{ secrets.EC2_KEY }}
+          source: production
+          target: /home/ubuntu/core-services
+          rm: true
+      - name: Start app
+        uses: appleboy/ssh-action@v0.1.10
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USERNAME }}
+          key: ${{ secrets.EC2_KEY }}
+          script: java -jar /home/ubuntu/core-services/production/transport.jar
+ 
