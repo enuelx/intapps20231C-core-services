@@ -31,6 +31,13 @@ jobs:
           java-version: "17"
           distribution: adopt
           cache: maven
+      - name: Set DOTENV
+        run: ./infrastructure/scripts/dotenv.sh
+        env:
+          RABBITMQ_HOST: ${{ RABBITMQ_HOST }}
+          RABBITMQ_PASSWORD: ${{ RABBITMQ_PASSWORD }}
+          RABBITMQ_PORT: ${{ RABBITMQ_PORT }}
+          RABBITMQ_USERNAME: ${{ RABBITMQ_USERNAME }}
       - name: Cache local Maven repository
         uses: actions/cache@v3
         with:
@@ -49,17 +56,13 @@ jobs:
           name: core-services
           path: production
           retention-days: 15
-      # - name: Stop app
-      #   env:
-      #     PRIVATE_KEY: ${{ secrets.EC2_KEY }}
-      #     HOSTNAME: ${{secrets.EC2_HOST}}
-      #     USER_NAME: ${secrets.EC2_USERNAME}
-      #   run: |
-      #     echo "$PRIVATE_KEY" > private_key && chmod 400 private_key
-      #     ssh -o StrictHostKeyChecking=no -i private_key ${USER_NAME}@${HOSTNAME} '
-      #         cd /home/ubuntu/core-services/production &&
-      #         kill $(cat ./pid.file)
-      #         '
+      - name: Stop app
+        uses: appleboy/ssh-action@v0.1.10
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USERNAME }}
+          key: ${{ secrets.EC2_KEY }}
+          script: cd /home/ubuntu/core-services/production && kill $(cat ./pid.file)
       - name: Copy jar via ssh key
         uses: appleboy/scp-action@v0.1.4
         with:
