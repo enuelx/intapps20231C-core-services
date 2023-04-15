@@ -34,10 +34,10 @@ jobs:
       - name: Set DOTENV
         run: ./infrastructure/scripts/dotenv.sh
         env:
-          RABBITMQ_HOST: ${{ RABBITMQ_HOST }}
-          RABBITMQ_PASSWORD: ${{ RABBITMQ_PASSWORD }}
-          RABBITMQ_PORT: ${{ RABBITMQ_PORT }}
-          RABBITMQ_USERNAME: ${{ RABBITMQ_USERNAME }}
+          RABBITMQ_HOST: ${{ secrets.RABBITMQ_HOST }}
+          RABBITMQ_PASSWORD: ${{ secrets.RABBITMQ_PASSWORD }}
+          RABBITMQ_PORT: ${{ secrets.RABBITMQ_PORT }}
+          RABBITMQ_USERNAME: ${{ secrets.RABBITMQ_USERNAME }}
       - name: Cache local Maven repository
         uses: actions/cache@v3
         with:
