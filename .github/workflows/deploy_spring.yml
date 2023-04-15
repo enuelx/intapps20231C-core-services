@@ -90,3 +90,4 @@ jobs:
           username: ${{ secrets.EC2_USERNAME }}
           key: ${{ secrets.EC2_KEY }}
           script: java -jar /home/ubuntu/core-services/production/transport.jar
+ 
