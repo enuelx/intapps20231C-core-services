@@ -32,6 +32,8 @@ jobs:
           distribution: adopt
           cache: maven
       - run: chmod +x ./infrastructure/scripts/dotenv.sh
+      # test
+      - run: cat ./src/main/resources/application.yml
       - name: Set DOTENV
         run: ./infrastructure/scripts/dotenv.sh
         env:
