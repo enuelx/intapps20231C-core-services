@@ -36,7 +36,7 @@ jobs:
         uses: cuchi/jinja2-action@v1.2.0
         with:
           template: ./infrastructure/templates/dotenv.yml.j2
-          output_file: ./src/main/resourcesapplication.yml
+          output_file: ./src/main/resources/application.yml
         env:
           RABBITMQ_HOST: ${{ secrets.RABBITMQ_HOST }}
           RABBITMQ_PASSWORD: ${{ secrets.RABBITMQ_PASSWORD }}
