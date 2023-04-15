@@ -53,39 +53,33 @@ module "vpc" {
 
 # MQ
 module "mq_broker" {
-  source                     = "cloudposse/mq-broker/aws"
-  version                    = "2.0.1"
-  namespace                  = var.globals["namespace"]
-  stage                      = var.globals["stage"]
-  name                       = var.globals["shortname"]
-  apply_immediately          = var.mq_broker["apply_immediately"]
-  auto_minor_version_upgrade = var.mq_broker["auto_minor_version_upgrade"]
-  deployment_mode            = var.mq_broker["deployment_mode"]
-  engine_type                = var.mq_broker["engine_type"]
-  engine_version             = var.mq_broker["engine_version"]
-  host_instance_type         = var.mq_broker["host_instance_type"]
-  publicly_accessible        = var.mq_broker["publicly_accessible"]
-  general_log_enabled        = var.mq_broker["general_log_enabled"]
-  audit_log_enabled          = var.mq_broker["audit_log_enabled"]
-  encryption_enabled         = var.mq_broker["encryption_enabled"]
-  use_aws_owned_key          = var.mq_broker["use_aws_owned_key"]
-  vpc_id                     = module.vpc.vpc_id
-  subnet_ids                 = [module.vpc.public_subnets[0]]
-  allowed_security_group_ids = [module.vpc.default_security_group_id]
-  allowed_ingress_ports      = var.mq_broker["allowed_ingress_ports"]
+  source                       = "cloudposse/mq-broker/aws"
+  version                      = "2.0.1"
+  namespace                    = var.globals["namespace"]
+  stage                        = var.globals["stage"]
+  name                         = var.globals["shortname"]
+  apply_immediately            = var.mq_broker["apply_immediately"]
+  auto_minor_version_upgrade   = var.mq_broker["auto_minor_version_upgrade"]
+  deployment_mode              = var.mq_broker["deployment_mode"]
+  engine_type                  = var.mq_broker["engine_type"]
+  engine_version               = var.mq_broker["engine_version"]
+  host_instance_type           = var.mq_broker["host_instance_type"]
+  publicly_accessible          = var.mq_broker["publicly_accessible"]
+  general_log_enabled          = var.mq_broker["general_log_enabled"]
+  audit_log_enabled            = var.mq_broker["audit_log_enabled"]
+  encryption_enabled           = var.mq_broker["encryption_enabled"]
+  use_aws_owned_key            = var.mq_broker["use_aws_owned_key"]
+  vpc_id                       = module.vpc.vpc_id
+  subnet_ids                   = [module.vpc.public_subnets[0]]
+  use_existing_security_groups = var.mq_broker["use_existing_security_groups"]
+  allowed_security_group_ids   = [module.vpc.default_security_group_id]
+  allowed_ingress_ports        = var.mq_broker["allowed_ingress_ports"]
   additional_security_group_rules = [
     {
       type        = "ingress"
-      from_port   = 5671
-      to_port     = 5671
-      protocol    = "tcp"
-      cidr_blocks = ["0.0.0.0/0"]
-    },
-    {
-      type        = "ingress"
-      from_port   = 8162
-      to_port     = 8162
-      protocol    = "tcp"
+      from_port   = 0
+      to_port     = 65535
+      protocol    = "-1"
       cidr_blocks = ["0.0.0.0/0"]
     }
   ]

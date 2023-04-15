@@ -20,18 +20,19 @@ vpc = {
 }
 
 mq_broker = {
-  apply_immediately          = true
-  auto_minor_version_upgrade = true
-  deployment_mode            = "SINGLE_INSTANCE"
-  engine_type                = "RabbitMQ"
-  engine_version             = "3.10.10"
-  host_instance_type         = "mq.t3.micro"
-  publicly_accessible        = true
-  general_log_enabled        = false
-  audit_log_enabled          = false
-  encryption_enabled         = true
-  use_aws_owned_key          = true
-  allowed_ingress_ports      = [8162, 5671]
+  apply_immediately            = true
+  auto_minor_version_upgrade   = true
+  deployment_mode              = "SINGLE_INSTANCE"
+  engine_type                  = "RabbitMQ"
+  engine_version               = "3.10.10"
+  host_instance_type           = "mq.t3.micro"
+  publicly_accessible          = false
+  general_log_enabled          = true
+  audit_log_enabled            = false
+  encryption_enabled           = true
+  use_aws_owned_key            = true
+  allowed_ingress_ports        = [8162, 5671]
+  use_existing_security_groups = false
 }
 
 ec2 = {
