@@ -13,7 +13,6 @@ public class Producer {
     this.rabbitTemplate = rabbitTemplate;
   }
 
-  @Scheduled(initialDelay = 5000, fixedDelay = 5000)
   public void sendMsg(){
     String msg = new String("Hello from Producer");
     System.out.println("Message to Sent from Producer: " + msg);
