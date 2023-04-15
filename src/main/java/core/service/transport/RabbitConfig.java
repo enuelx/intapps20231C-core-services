@@ -37,6 +37,7 @@ public class RabbitConfig {
   @Bean 
   public ConnectionFactory connectionFactory(){
     CachingConnectionFactory factory = new CachingConnectionFactory(host);
+    factory.useSslProtocol()
 
     // print("Host: " + host);
     // print("Username: " + username);
