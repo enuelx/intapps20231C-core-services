@@ -43,12 +43,14 @@ jobs:
           RABBITMQ_PORT: ${{ secrets.RABBITMQ_PORT }}
           RABBITMQ_USERNAME: ${{ secrets.RABBITMQ_USERNAME }}
 
-      - name: Upload package
+
+      - name: Tar files
+        run: tar -cvf application.tar ./src/main/resources/application.yml
+      - name: Upload Artifact
         uses: actions/upload-artifact@v3
         with:
-          name: dot
-          path: ./src/main/resources/application.yml
-          retention-days: 1
+          name: application
+          path: application.tar
 
 
       - name: Cache local Maven repository
