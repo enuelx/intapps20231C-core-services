@@ -4,3 +4,5 @@ spring:
     password: {{ env['RABBITMQ_PASSWORD'] }}
     port: {{ env['RABBITMQ_PORT'] }}
     username: {{ env['RABBITMQ_USERNAME'] }}
+    ssl:
+      enabled: {{ env['RABBITMQ_SSL'] }}

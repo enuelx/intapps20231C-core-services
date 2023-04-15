@@ -1,11 +1,16 @@
 package core.service.transport;
 
+
 import org.springframework.amqp.rabbit.connection.CachingConnectionFactory;
-import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+
+import com.rabbitmq.client.ConnectionFactory;
+
+import java.security.KeyManagementException;
+import java.security.NoSuchAlgorithmException;
 
 import org.springframework.amqp.core.Binding;
 import org.springframework.amqp.core.BindingBuilder;
@@ -35,23 +40,25 @@ public class RabbitConfig {
   }
 
   @Bean 
-  public ConnectionFactory connectionFactory(){
-    CachingConnectionFactory factory = new CachingConnectionFactory(host);
+  public ConnectionFactory connectionFactory() throws KeyManagementException, NoSuchAlgorithmException{
+    ConnectionFactory factory = new ConnectionFactory();
 
-    // print("Host: " + host);
-    // print("Username: " + username);
-    // print("Password: " + password);
-    // print("Port: " + port);
-
+    factory.setHost(host);
     factory.setUsername(username);
     factory.setPassword(password);
     factory.setPort(port);
+    factory.useSslProtocol();
 
     return factory;
   }
 
   @Bean
-  public RabbitTemplate rabbitTemplate(ConnectionFactory connectionFactory){
+  public org.springframework.amqp.rabbit.connection.ConnectionFactory springConnectionFactory(ConnectionFactory rabConnectionFactory){
+    return new CachingConnectionFactory(rabConnectionFactory);
+  }
+
+  @Bean
+  public RabbitTemplate rabbitTemplate(org.springframework.amqp.rabbit.connection.ConnectionFactory connectionFactory){
     final RabbitTemplate rabbitTemplate = new RabbitTemplate(connectionFactory);
     return rabbitTemplate;
   }
