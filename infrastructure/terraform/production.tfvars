@@ -34,16 +34,6 @@ mq_broker = {
   allowed_ingress_ports      = [8162, 5671]
 }
 
-# s3_intapps = {
-#   enabled            = true
-#   user_enabled       = false
-#   versioning_enabled = true
-#   acl                = "private"
-#   bucket_key_enabled = true
-#   sse_algorithm      = "aws:kms"
-#   name               = "intapps"
-# }
-
 ec2 = {
   ssh_key_pair                = "intapps-2023"
   associate_public_ip_address = true

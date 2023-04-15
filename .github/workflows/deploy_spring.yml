@@ -42,34 +42,24 @@ jobs:
           RABBITMQ_PASSWORD: ${{ secrets.RABBITMQ_PASSWORD }}
           RABBITMQ_PORT: ${{ secrets.RABBITMQ_PORT }}
           RABBITMQ_USERNAME: ${{ secrets.RABBITMQ_USERNAME }}
-
-      - name: Copy jar via ssh key
-        uses: appleboy/scp-action@v0.1.4
+      - name: Cache local Maven repository
+        uses: actions/cache@v3
         with:
-          host: ${{ secrets.EC2_HOST }}
-          username: ${{ secrets.EC2_USERNAME }}
-          key: ${{ secrets.EC2_KEY }}
-          source: src/main/resources/application.yml
-          target: /home/ubuntu/core-services
-
-      # - name: Cache local Maven repository
-      #   uses: actions/cache@v3
-      #   with:
-      #     path: ~/.m2/repository
-      #     key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
-      #     restore-keys: |
-      #       ${{ runner.os }}-maven-
-      # - name: Build package
-      #   run: mvn versions:set -DnewVersion=0.0.2-${GITHUB_SHA::6}-RELEASE && mvn --batch-mode clean deploy -DskipTests=true
-      #   env:
-      #     GITHUB_TOKEN: ${{ secrets.JAVA_DEPLOY_TOKEN }}
-      # - run: mkdir production && cp target/transport-0.0.2-${GITHUB_SHA::6}-RELEASE.jar production/transport.jar
-      # - name: Upload package
-      #   uses: actions/upload-artifact@v3
-      #   with:
-      #     name: core-services
-      #     path: production
-      #     retention-days: 15
+          path: ~/.m2/repository
+          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+          restore-keys: |
+            ${{ runner.os }}-maven-
+      - name: Build package
+        run: mvn versions:set -DnewVersion=0.0.2-${GITHUB_SHA::6}-RELEASE && mvn --batch-mode clean deploy -DskipTests=true
+        env:
+          GITHUB_TOKEN: ${{ secrets.JAVA_DEPLOY_TOKEN }}
+      - run: mkdir production && cp target/transport-0.0.2-${GITHUB_SHA::6}-RELEASE.jar production/transport.jar
+      - name: Upload package
+        uses: actions/upload-artifact@v3
+        with:
+          name: core-services
+          path: production
+          retention-days: 15
       # - name: Stop app
       #   uses: appleboy/ssh-action@v0.1.10
       #   with:
@@ -77,19 +67,19 @@ jobs:
       #     username: ${{ secrets.EC2_USERNAME }}
       #     key: ${{ secrets.EC2_KEY }}
       #     script: kill $(cat /home/ubuntu/pid.file)
-      # - name: Copy jar via ssh key
-      #   uses: appleboy/scp-action@v0.1.4
-      #   with:
-      #     host: ${{ secrets.EC2_HOST }}
-      #     username: ${{ secrets.EC2_USERNAME }}
-      #     key: ${{ secrets.EC2_KEY }}
-      #     source: production
-      #     target: /home/ubuntu/core-services
-      #     rm: true
-      # - name: Start app
-      #   uses: appleboy/ssh-action@v0.1.10
-      #   with:
-      #     host: ${{ secrets.EC2_HOST }}
-      #     username: ${{ secrets.EC2_USERNAME }}
-      #     key: ${{ secrets.EC2_KEY }}
-      #     script: cd /home/ubuntu/core-services/production && java -jar transport.jar & echo $! > ./pid.file &
+      - name: Copy jar via ssh key
+        uses: appleboy/scp-action@v0.1.4
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USERNAME }}
+          key: ${{ secrets.EC2_KEY }}
+          source: production
+          target: /home/ubuntu/core-services
+          rm: true
+      - name: Start app
+        uses: appleboy/ssh-action@v0.1.10
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USERNAME }}
+          key: ${{ secrets.EC2_KEY }}
+          script: cd /home/ubuntu/core-services/production && java -jar transport.jar & echo $! > ./pid.file &

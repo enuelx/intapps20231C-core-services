@@ -73,6 +73,22 @@ module "mq_broker" {
   subnet_ids                 = [module.vpc.public_subnets[0]]
   allowed_security_group_ids = [module.vpc.default_security_group_id]
   allowed_ingress_ports      = var.mq_broker["allowed_ingress_ports"]
+  additional_security_group_rules = [
+    {
+      type        = "ingress"
+      from_port   = 5671
+      to_port     = 5671
+      protocol    = "tcp"
+      cidr_blocks = ["0.0.0.0/0"]
+    },
+    {
+      type        = "ingress"
+      from_port   = 8162
+      to_port     = 8162
+      protocol    = "tcp"
+      cidr_blocks = ["0.0.0.0/0"]
+    }
+  ]
 }
 
 resource "aws_ssm_parameter" "ssm_param_broker_id" {
@@ -161,7 +177,6 @@ module "ec2_instance" {
   stage                       = var.globals["stage"]
   instance_profile            = aws_iam_instance_profile.ec2_instance.name
   user_data                   = file("files/userdata/setup-instance.sh")
-
   security_group_rules = [
     {
       type        = "egress"
@@ -193,19 +208,3 @@ module "ec2_instance" {
     }
   ]
 }
-
-# # S3
-# module "s3_intapps" {
-#   source             = "cloudposse/s3-bucket/aws"
-#   version            = "3.0.0"
-#   acl                = var.s3_intapps["acl"]
-#   enabled            = var.s3_intapps["enabled"]
-#   user_enabled       = var.s3_intapps["user_enabled"]
-#   versioning_enabled = var.s3_intapps["versioning_enabled"]
-#   name               = var.s3_intapps["name"]
-#   stage              = var.globals["stage"]
-#   namespace          = var.globals["namespace"]
-#   bucket_key_enabled = var.s3_intapps["bucket_key_enabled"]
-#   kms_master_key_arn = module.kms_key_s3.key_arn
-#   sse_algorithm      = var.s3_intapps["sse_algorithm"]
-# }
