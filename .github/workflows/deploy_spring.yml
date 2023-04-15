@@ -31,6 +31,7 @@ jobs:
           java-version: "17"
           distribution: adopt
           cache: maven
+      - run: chmod +x ./infrastructure/scripts/dotenv.sh
       - name: Set DOTENV
         run: ./infrastructure/scripts/dotenv.sh
         env:
