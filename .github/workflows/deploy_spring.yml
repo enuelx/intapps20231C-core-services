@@ -76,10 +76,17 @@ jobs:
           source: production
           target: /home/ubuntu/core-services
           rm: true
+      # - name: Start app
+      #   uses: appleboy/ssh-action@v0.1.10
+      #   with:
+      #     host: ${{ secrets.EC2_HOST }}
+      #     username: ${{ secrets.EC2_USERNAME }}
+      #     key: ${{ secrets.EC2_KEY }}
+      #     script: cd /home/ubuntu/core-services/production && java -jar transport.jar & echo $! > ./pid.file &
       - name: Start app
         uses: appleboy/ssh-action@v0.1.10
         with:
           host: ${{ secrets.EC2_HOST }}
           username: ${{ secrets.EC2_USERNAME }}
           key: ${{ secrets.EC2_KEY }}
-          script: cd /home/ubuntu/core-services/production && java -jar transport.jar & echo $! > ./pid.file &
+          script: cd /home/ubuntu/core-services/production && java -jar transport.jar
