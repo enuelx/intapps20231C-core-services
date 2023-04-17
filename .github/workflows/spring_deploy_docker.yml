@@ -1,0 +1,136 @@
+name: building java spring in docker and deploy on aws
+
+on:
+  push:
+    branches: [main]
+    paths-ignore:
+      - "docs/**"
+      - "infrastructure/**"
+      - "README.md"
+  workflow_dispatch:
+
+permissions:
+  id-token: write
+  contents: read
+  actions: read
+
+jobs:
+  build-app:
+    runs-on: ubuntu-latest
+    environment:
+      name: ${{ github.ref_name }}
+    steps:
+      - uses: actions/checkout@v2
+      - name: Setup java
+        uses: actions/setup-java@v3
+        with:
+          java-version: "17"
+          distribution: adopt
+          cache: maven
+      - run: rm ./src/main/resources/application.yml
+      - name: Setup DOTENV
+        uses: cuchi/jinja2-action@v1.2.0
+        with:
+          template: infrastructure/templates/dotenv.yml.j2
+          output_file: src/main/resources/application.yml
+        env:
+          RABBITMQ_HOST: ${{ secrets.RABBITMQ_HOST }}
+          RABBITMQ_PASSWORD: ${{ secrets.RABBITMQ_PASSWORD }}
+          RABBITMQ_PORT: ${{ secrets.RABBITMQ_PORT }}
+          RABBITMQ_USERNAME: ${{ secrets.RABBITMQ_USERNAME }}
+      - name: Cache local Maven repository
+        uses: actions/cache@v3
+        with:
+          path: ~/.m2/repository
+          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+          restore-keys: |
+            ${{ runner.os }}-maven-
+      - name: Build package
+        run: mvn versions:set -DnewVersion=0.0.2-${GITHUB_SHA::6}-RELEASE && mvn --batch-mode clean deploy -DskipTests=true
+        env:
+          GITHUB_TOKEN: ${{ secrets.JAVA_DEPLOY_TOKEN }}
+      - run: mkdir production && cp target/transport-0.0.2-${GITHUB_SHA::6}-RELEASE.jar production/transport.jar
+      - name: Upload package
+        uses: actions/upload-artifact@v3
+        with:
+          name: core-services
+          path: production
+          retention-days: 15
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE }}
+          role-session-name: GitHubActions
+          audience: sts.amazonaws.com
+          aws-region: ${{ secrets.AWS_REGION }}
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v1
+      - name: Build, tag, and push image to Amazon ECR
+        env:
+          ECR_REGISTRY: ${{ secrets.ECR_REGISTRY }}
+          ECR_REPOSITORY: ${{ secrets.ECR_REPOSITORY }}
+          IMAGE_TAG: latest
+        run: |
+          docker build --build-arg JAR_FILE=production/transport.jar -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+  deploy-to-ec2:
+    needs: build-app
+    runs-on: ubuntu-latest
+    environment:
+      name: ${{ github.ref_name }}
+    steps:
+      - uses: actions/checkout@v2
+      - name: Setup docker compose
+        uses: cuchi/jinja2-action@v1.2.0
+        with:
+          template: infrastructure/templates/docker-compose-transport.yml.j2
+          output_file: docker-compose.yml
+        env:
+          ECR_REGISTRY: ${{ secrets.ECR_REGISTRY }}
+          ECR_REPOSITORY: ${{ secrets.ECR_REPOSITORY }}
+          IMAGE_TAG: latest
+          CONTAINER: transport
+          PORTS: 8080:8080
+      - name: Check file existence
+        id: check_exist_dockercompose
+        uses: andstor/file-existence-action@v1
+        with:
+          files: "/home/ec2-user/docker-compose.yml"
+      - name: Down services
+        if: steps.check_exist_dockercompose.outputs.files_exists == 'true'
+        uses: appleboy/ssh-action@v0.1.10
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USERNAME }}
+          key: ${{ secrets.EC2_KEY }}
+          script: |
+            cd /home/ec2-user
+            docker-compose down
+      - name: Copy docker compose via ssh key
+        uses: appleboy/scp-action@v0.1.4
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USERNAME }}
+          key: ${{ secrets.EC2_KEY }}
+          source: docker-compose.yml
+          target: /home/ec2-user
+          rm: false
+      - name: Up services
+        env:
+          ECR_REGISTRY: ${{ secrets.ECR_REGISTRY }}
+          ECR_REPOSITORY: ${{ secrets.ECR_REPOSITORY }}
+          AWS_REGION: ${{ secrets.AWS_REGION }}
+          IMAGE_TAG: latest
+        uses: appleboy/ssh-action@v0.1.10
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USERNAME }}
+          key: ${{ secrets.EC2_KEY }}
+          envs: ECR_REGISTRY,ECR_REPOSITORY,IMAGE_TAG,AWS_REGION
+          script: |
+            aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $ECR_REGISTRY
+            docker pull $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+            cd /home/ec2-user
+            docker-compose up -d
+            docker-compose ps

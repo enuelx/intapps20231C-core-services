@@ -1,0 +1,12 @@
+version: "3.3"
+services:
+  {{ env['CONTAINER'] }}:
+    container_name: {{ env['CONTAINER'] }}
+    image: {{ env['ECR_REGISTRY'] }}/{{ env['ECR_REPOSITORY'] }}:{{ env['IMAGE_TAG'] }} 
+    ports:
+      - {{ env['PORTS'] }}
+    networks:
+      - app-network
+networks:
+  app-network:
+    driver: bridge

@@ -2,7 +2,7 @@ name: building java spring and deploy on aws
 
 on:
   push:
-    #branches: [main]
+    branches: [ec2/**]
     paths-ignore:
       - "docs/**"
       - "infrastructure/**"
@@ -14,7 +14,7 @@ permissions:
   actions: read
 
 jobs:
-  deploy_spring:
+  deploy-to-ec2:
     runs-on: ubuntu-latest
     environment:
       name: ${{ github.ref_name }}
@@ -26,7 +26,7 @@ jobs:
           role-to-assume: ${{ secrets.AWS_ROLE }}
           role-session-name: GitHubActions
           audience: sts.amazonaws.com
-          aws-region: sa-east-1
+          aws-region: ${{ secrets.AWS_REGION }}
       - name: Setup java
         uses: actions/setup-java@v3
         with:
@@ -81,7 +81,7 @@ jobs:
           username: ${{ secrets.EC2_USERNAME }}
           key: ${{ secrets.EC2_KEY }}
           source: production
-          target: /home/ubuntu/core-services
+          target: /home/ec2-user/core-services
           rm: true
       - name: Start app
         uses: appleboy/ssh-action@v0.1.10
@@ -89,5 +89,4 @@ jobs:
           host: ${{ secrets.EC2_HOST }}
           username: ${{ secrets.EC2_USERNAME }}
           key: ${{ secrets.EC2_KEY }}
-          script: java -jar /home/ubuntu/core-services/production/transport.jar &
- 
+          script: java -jar /home/ec2-user/core-services/production/transport.jar &

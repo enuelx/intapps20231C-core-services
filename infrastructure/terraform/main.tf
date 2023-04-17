@@ -135,18 +135,13 @@ resource "aws_iam_role_policy" "ec2_instance" {
   "Version": "2012-10-17",
   "Statement": [
     {
-      "Effect": "Allow",
-      "Action": ["s3:ListBucket"],
-      "Resource": ["arn:aws:s3:::*"]
-    },
-    {
-      "Effect": "Allow",
       "Action": [
-        "s3:GetObject",
-        "s3:DeleteObject",
-        "s3:GetObjectVersion"
+        "ecr:GetAuthorizationToken",
+        "ecr:BatchGetImage",
+        "ecr:GetDownloadUrlForLayer"
       ],
-      "Resource": ["arn:aws:s3:::*/*"]
+      "Effect": "Allow",
+      "Resource": "*"
     }
   ]
 }
@@ -158,9 +153,20 @@ resource "aws_iam_instance_profile" "ec2_instance" {
   role = aws_iam_role.ec2_instance.name
 }
 
+data "aws_ami" "amazon_linux_2" {
+  most_recent = true
+  owners      = ["amazon"]
+
+  filter {
+    name   = "name"
+    values = ["amzn2-ami-hvm-*-x86_64-ebs"]
+  }
+}
+
 module "ec2_instance" {
   source                      = "cloudposse/ec2-instance/aws"
   version                     = "0.47.1"
+  ami                         = data.aws_ami.amazon_linux_2.id
   vpc_id                      = module.vpc.vpc_id
   ssh_key_pair                = var.ec2["ssh_key_pair"]
   subnet                      = module.vpc.public_subnets[0]
@@ -170,7 +176,15 @@ module "ec2_instance" {
   namespace                   = var.globals["namespace"]
   stage                       = var.globals["stage"]
   instance_profile            = aws_iam_instance_profile.ec2_instance.name
-  user_data                   = file("files/userdata/setup-instance.sh")
+  user_data                   = <<-EOF
+    #!/bin/bash
+    sudo yum update -y
+    sudo amazon-linux-extras install docker -y
+    sudo service docker start
+    sudo usermod -a -G docker ec2-user
+    sudo curl -L https://github.com/docker/compose/releases/download/1.25.4/docker-compose-$(uname -s)-$(uname -m) -o /usr/local/bin/docker-compose
+    sudo chmod +x /usr/local/bin/docker-compose
+  EOF
   security_group_rules = [
     {
       type        = "egress"
@@ -201,4 +215,14 @@ module "ec2_instance" {
       cidr_blocks = ["0.0.0.0/0"]
     }
   ]
+}
+
+# ECR
+module "ecr" {
+  source               = "cloudposse/ecr/aws"
+  version              = "0.35.0"
+  name                 = var.globals["shortname"]
+  namespace            = var.globals["namespace"]
+  stage                = var.globals["stage"]
+  image_tag_mutability = "MUTABLE"
 }
