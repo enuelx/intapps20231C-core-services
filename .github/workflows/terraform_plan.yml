@@ -2,7 +2,8 @@ name: deploy terraform
 
 on:
   push:
-    branches: [infra/*]
+    branches:
+      - '!main' 
     paths:
       - "infrastructure/**"
 
