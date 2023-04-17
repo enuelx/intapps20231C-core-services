@@ -96,7 +96,7 @@ jobs:
         id: check_exist_dockercompose
         uses: andstor/file-existence-action@v1
         with:
-          files: "/home/ec2-user/docker-compose.yml"
+          files: "/home/ec2-user/app/docker-compose.yml"
       - name: Down services
         if: steps.check_exist_dockercompose.outputs.files_exists == 'true'
         uses: appleboy/ssh-action@v0.1.10
@@ -105,7 +105,7 @@ jobs:
           username: ${{ secrets.EC2_USERNAME }}
           key: ${{ secrets.EC2_KEY }}
           script: |
-            cd /home/ec2-user
+            cd /home/ec2-user/app
             docker-compose down
       - name: Copy docker compose via ssh key
         uses: appleboy/scp-action@v0.1.4
@@ -114,7 +114,7 @@ jobs:
           username: ${{ secrets.EC2_USERNAME }}
           key: ${{ secrets.EC2_KEY }}
           source: docker-compose.yml
-          target: /home/ec2-user
+          target: /home/ec2-user/app
           rm: false
       - name: Up services
         env:
