@@ -73,7 +73,7 @@ jobs:
         run: |
           docker build --build-arg JAR_FILE=production/transport.jar -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
-  deploy-to-ec2:
+  deploy-to-docker:
     needs: build-app
     runs-on: ubuntu-latest
     environment:
