@@ -2,7 +2,7 @@ name: building java spring in docker and deploy on aws
 
 on:
   push:
-    #branches: [main]
+    branches: [main]
     paths-ignore:
       - "docs/**"
       - "infrastructure/**"
