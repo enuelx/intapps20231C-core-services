@@ -13,6 +13,9 @@ permissions:
   contents: read
   actions: read
 
+env:
+  FOLDER_PATH: /home/ec2-user/app
+
 jobs:
   build-app:
     runs-on: ubuntu-latest
@@ -108,7 +111,7 @@ jobs:
             else
               echo "El servicio está creado"
               echo "$service_status"
-              cd /home/ec2-user/app
+              cd ${ FOLDER_PATH }
               docker-compose down
             fi
       - name: Copy docker compose via ssh key
@@ -118,7 +121,7 @@ jobs:
           username: ${{ secrets.EC2_USERNAME }}
           key: ${{ secrets.EC2_KEY }}
           source: docker-compose.yml
-          target: /home/ec2-user/app
+          target: ${ FOLDER_PATH }
           rm: false
       - name: Up services
         env:
@@ -135,6 +138,6 @@ jobs:
           script: |
             aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $ECR_REGISTRY
             docker pull $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
-            cd /home/ec2-user/app
+            cd ${ FOLDER_PATH }
             docker-compose up -d
             docker-compose ps
