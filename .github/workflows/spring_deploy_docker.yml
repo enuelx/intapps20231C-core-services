@@ -92,7 +92,6 @@ jobs:
           CONTAINER: transport
           PORTS: 8080:8080
       - name: Down services
-        if: steps.check_exist_dockercompose.outputs.files_exists == 'true'
         uses: appleboy/ssh-action@v0.1.10
         with:
           host: ${{ secrets.EC2_HOST }}
