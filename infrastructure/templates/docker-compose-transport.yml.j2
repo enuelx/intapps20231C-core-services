@@ -7,6 +7,23 @@ services:
       - {{ env['PORTS'] }}
     networks:
       - app-network
+
+  grafana:
+    container_name: grafana
+    image: grafana/grafana:latest
+    ports:
+      - 3000:3000
+    networks:
+      - app-network
+        
+  loki:
+    container_name: loki
+    image: grafana/loki:latest
+    ports:
+      - 3100:3100
+    networks:
+      - app-network
+  
 networks:
   app-network:
     driver: bridge
