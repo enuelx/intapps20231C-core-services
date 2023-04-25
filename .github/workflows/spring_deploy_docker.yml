@@ -61,7 +61,7 @@ jobs:
         with:
           name: core-services
           path: production
-          retention-days: 15
+          retention-days: 7
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v2
         with:
