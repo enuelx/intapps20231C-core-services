@@ -111,7 +111,7 @@ jobs:
             else
               echo "El servicio está creado"
               echo "$service_status"
-              cd ${ FOLDER_PATH }
+              cd ${{ env.FOLDER_PATH }}
               docker-compose down
             fi
       - name: Copy docker compose via ssh key
@@ -121,7 +121,7 @@ jobs:
           username: ${{ secrets.EC2_USERNAME }}
           key: ${{ secrets.EC2_KEY }}
           source: docker-compose.yml
-          target: ${ FOLDER_PATH }
+          target: ${{ env.FOLDER_PATH }}
           rm: false
       - name: Up services
         env:
@@ -138,6 +138,6 @@ jobs:
           script: |
             aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $ECR_REGISTRY
             docker pull $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
-            cd ${ FOLDER_PATH }
+            cd ${{ env.FOLDER_PATH }}
             docker-compose up -d
             docker-compose ps
