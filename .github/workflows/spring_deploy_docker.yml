@@ -88,27 +88,6 @@ jobs:
         with:
           template: infrastructure/templates/docker-compose-transport.yml.j2
           output_file: docker-compose.yml
-      - name: Down services
-        uses: appleboy/ssh-action@v0.1.10
-        with:
-          host: ${{ secrets.EC2_HOST }}
-          username: ${{ secrets.EC2_USERNAME }}
-          key: ${{ secrets.EC2_KEY }}
-          envs: FOLDER_PATH
-          script: |
-            # Nombre del servicio que desea verificar
-            service_name="nombre_del_servicio"
-            # Ejecutar el comando docker-compose ps y guardar la salida en una variable
-            service_status=$(docker-compose ps "$service_name" 2>&1)
-            # Verificar si el servicio está creado o no
-            if [[ "$service_status" == *"No such service"* ]]; then
-              echo "El servicio no está creado"
-            else
-              echo "El servicio está creado"
-              echo "$service_status"
-              cd $FOLDER_PATH
-              docker-compose down
-            fi
       - name: Copy docker compose via ssh key
         uses: appleboy/scp-action@v0.1.4
         with:

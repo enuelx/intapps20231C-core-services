@@ -17,6 +17,8 @@ services:
     image: grafana/grafana:latest
     ports:
       - 3000:3000
+    volumes:
+      - grafana-data:/var/lib/grafana
     networks:
       - app-network
         
@@ -25,9 +27,15 @@ services:
     image: grafana/loki:latest
     ports:
       - 3100:3100
+    volumes:
+      - loki-data:/loki
     networks:
       - app-network
-  
+
+volumes:
+  grafana-data:
+  loki-data:
+
 networks:
   app-network:
     driver: bridge
