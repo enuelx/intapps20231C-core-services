@@ -184,7 +184,7 @@ module "ec2_instance" {
     sudo usermod -a -G docker ec2-user
     sudo curl -L https://github.com/docker/compose/releases/download/1.25.4/docker-compose-$(uname -s)-$(uname -m) -o /usr/local/bin/docker-compose
     sudo chmod +x /usr/local/bin/docker-compose
-    cd /home/ec2-user && mkdir app
+    mkdir /home/ec2-user/app
   EOF
   security_group_rules = [
     {
