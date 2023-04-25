@@ -91,11 +91,6 @@ jobs:
           IMAGE_TAG: latest
           CONTAINER: transport
           PORTS: 8080:8080
-      - name: Check file existence
-        id: check_exist_dockercompose
-        uses: andstor/file-existence-action@v1
-        with:
-          files: "/home/ec2-user/app/docker-compose.yml"
       - name: Down services
         if: steps.check_exist_dockercompose.outputs.files_exists == 'true'
         uses: appleboy/ssh-action@v0.1.10
@@ -104,8 +99,19 @@ jobs:
           username: ${{ secrets.EC2_USERNAME }}
           key: ${{ secrets.EC2_KEY }}
           script: |
-            cd /home/ec2-user/app
-            docker-compose down
+            # Nombre del servicio que desea verificar
+            service_name="nombre_del_servicio"
+            # Ejecutar el comando docker-compose ps y guardar la salida en una variable
+            service_status=$(docker-compose ps "$service_name" 2>&1)
+            # Verificar si el servicio está creado o no
+            if [[ "$service_status" == *"No such service"* ]]; then
+              echo "El servicio no está creado"
+            else
+              echo "El servicio está creado"
+              echo "$service_status"
+              cd /home/ec2-user/app
+              docker-compose down
+            fi
       - name: Copy docker compose via ssh key
         uses: appleboy/scp-action@v0.1.4
         with:
