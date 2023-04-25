@@ -37,3 +37,4 @@ build/
 ### Terraform
 **/.terraform/**
 infrastructure/terraform/.terraform.lock.hcl
+local*/**
