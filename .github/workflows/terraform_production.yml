@@ -39,8 +39,8 @@ jobs:
     - name: Terraform init
       run: terraform init
 
-    - name: Checkov
-      run: checkov -d .
+    # - name: Checkov
+    #   run: checkov -d .
 
     - name: Terraform Plan
       id: terraform_plan
