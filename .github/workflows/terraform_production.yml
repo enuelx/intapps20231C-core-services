@@ -1,10 +1,9 @@
-name: deploy terraform
+name: Terraform Pipeline
 
 on:
-  push:
-    branches: [main]
-    paths:
-      - "infrastructure/terraform/**"
+  pull_request:
+    branches:
+      - main
 
 permissions:
   id-token: write
@@ -12,25 +11,45 @@ permissions:
   actions: read
 
 jobs:
-  tf-deploy:
+  terraform:
     runs-on: ubuntu-latest
     environment:
-      name: preview
+      name: production
     steps:
-      - uses: actions/checkout@v2
-      - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v2
-        with:
-          role-to-assume: ${{ secrets.AWS_ROLE }}
-          role-session-name: GitHubActions
-          audience: sts.amazonaws.com
-          aws-region: sa-east-1
-      - name: setup Terraform CLI
-        uses: hashicorp/setup-terraform@v2.0.2
-      - name: Terraform Init
-        run: terraform -chdir="./infrastructure/terraform" init -input=false
-      - name: Terraform Plan
-        id: plan
-        run: terraform -chdir="./infrastructure/terraform" plan -var-file=production.tfvars -no-color -out terraform.tfplan
-      - name: Terraform Apply
-        run: terraform -chdir="./infrastructure/terraform" apply -auto-approve terraform.tfplan
+    - uses: actions/checkout@v3
+      with:
+        ref: ${{ github.event.pull_request.head.sha }}
+
+    - name: Configure AWS credentials
+      uses: aws-actions/configure-aws-credentials@v2
+      with:
+        role-to-assume: ${{ secrets.AWS_ROLE }}
+        role-session-name: GitHubActions
+        audience: sts.amazonaws.com
+        aws-region: sa-east-1
+
+    - name: Setup Terraform
+      uses: hashicorp/setup-terraform@v2
+      with:
+        terraform_version: "1.1.7"
+
+    - name: Install Checkov
+      run: pip install checkov
+
+    - name: Terraform init
+      run: terraform init
+
+    - name: Checkov
+      run: checkov -d .
+
+    - name: Terraform Plan
+      id: terraform_plan
+      run: terraform plan -var-file=production.tfvars -no-color -out=tfplan
+      env:
+        TF_VAR_auto_approve: 0
+
+    - name: Terraform Apply
+      if: github.event_name == 'workflow_dispatch'
+      run: terraform apply tfplan
+      env:
+        TF_VAR_auto_approve: 1
