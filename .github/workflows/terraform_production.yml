@@ -37,19 +37,19 @@ jobs:
       run: pip install checkov
 
     - name: Terraform init
-      run: terraform init
+      run: terraform -chdir="./infrastructure/terraform" init -input=false
 
     # - name: Checkov
     #   run: checkov -d .
 
     - name: Terraform Plan
       id: terraform_plan
-      run: terraform plan -chdir="./infrastructure/terraform" -var-file=production.tfvars -no-color -out=tfplan
+      run: terraform -chdir="./infrastructure/terraform" plan -var-file=production.tfvars -no-color -out=tfplan
       env:
         TF_VAR_auto_approve: 0
 
     - name: Terraform Apply
       if: github.event_name == 'workflow_dispatch'
-      run: terraform apply -chdir="./infrastructure/terraform" tfplan
+      run: terraform -chdir="./infrastructure/terraform" apply tfplan
       env:
         TF_VAR_auto_approve: 1
