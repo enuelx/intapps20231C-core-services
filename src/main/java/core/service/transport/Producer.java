@@ -13,6 +13,10 @@ public class Producer {
     this.rabbitTemplate = rabbitTemplate;
   }
 
+  public void sendTo(String queue, String message){
+    rabbitTemplate.convertAndSend(RabbitConfig.TRADING_EXCHANGE, queue, message);
+  }
+
   public void sendMsg(){
     String msg = new String("Hello from Producer");
     System.out.println("Message to Sent from Producer: " + msg);
