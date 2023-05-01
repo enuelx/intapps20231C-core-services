@@ -10,20 +10,20 @@ import org.springframework.messaging.simp.stomp.StompHeaders;
 import org.springframework.messaging.simp.stomp.StompSession;
 import org.springframework.messaging.simp.stomp.StompSessionHandler;
 
-import core.service.transport.server.OutputMessage;
+import core.service.transport.server.IncommingMessage;
 
 public class ClientSessionHandler implements StompSessionHandler {
 
-  private Logger logger = LogManager.getLogger(ClientSessionHandler.class);
+  private static final Logger logger = LogManager.getLogger(ClientSessionHandler.class);
 
-  @Override
   public Type getPayloadType(StompHeaders headers) {
-    return OutputMessage.class;
+    return IncommingMessage.class;
   }
 
   @Override
   public void handleFrame(StompHeaders headers, @Nullable Object payload) {
-    logger.info("Incoming Message Received");
+	  IncommingMessage msg = (IncommingMessage) payload;
+	  logger.info("Received Message: " + msg.getContent() + "----" + msg.getFrom());
   }
 
   @Override
