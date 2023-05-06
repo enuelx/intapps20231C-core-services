@@ -7,6 +7,7 @@ on:
       - "docs/**"
       - "infrastructure/**"
       - "README.md"
+  workflow_dispatch:
 
 permissions:
   id-token: write
