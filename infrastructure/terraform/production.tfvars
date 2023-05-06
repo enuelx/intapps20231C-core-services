@@ -11,7 +11,6 @@ vpc = {
   azs                    = ["sa-east-1a", "sa-east-1b"]
   private_subnets        = ["10.190.100.0/24", "10.190.101.0/24"]
   public_subnets         = ["10.190.200.0/24", "10.190.201.0/24"]
-  database_subnets       = ["10.190.21.0/24", "10.190.22.0/24"]
   enable_nat_gateway     = true
   single_nat_gateway     = true
   one_nat_gateway_per_az = false
