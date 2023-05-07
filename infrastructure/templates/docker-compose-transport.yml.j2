@@ -9,10 +9,35 @@ services:
       - app-network
     log_driver: "awslogs"
     log_opt:
-      awslogs-region: "eu-west-1"
+      awslogs-region: "{{ env['AWS_REGION'] }}"
       awslogs-group: "{{ env['CONTAINER'] }}"
       awslogs-stream: "{{ env['CONTAINER'] }}-stream"
-      awslogs-create-group: true
+      awslogs-create-group: "true"
+
+volumes:
+  grafana-data:
+
+networks:
+  app-network:
+    driver: bridge
+
+
+    version: "3.3"
+services:
+  transport:
+    container_name: transport
+    image: 781013578291.dkr.ecr.sa-east-1.amazonaws.com/core-prod-intapps:latest
+    ports:
+      - 8080
+    networks:
+      - app-network
+    logging:
+      driver: "awslogs"
+      options:
+        awslogs-region: "sa-east-1"
+        awslogs-group: "transport-logs"
+        awslogs-stream: "stream"
+        awslogs-create-group: "true"
 
 volumes:
   grafana-data:

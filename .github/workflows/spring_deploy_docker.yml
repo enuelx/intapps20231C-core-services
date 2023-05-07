@@ -97,7 +97,7 @@ jobs:
           key: ${{ secrets.EC2_KEY }}
           source: docker-compose.yml
           target: ${{ env.FOLDER_PATH }}
-          rm: false
+          rm: true
       - name: Up services
         uses: appleboy/ssh-action@v0.1.10
         with:
