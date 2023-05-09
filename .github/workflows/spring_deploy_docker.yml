@@ -1,4 +1,4 @@
-name: building java spring in docker and deploy on aws
+name: building java spring in docker compose and deploy on aws
 
 on:
   push:
