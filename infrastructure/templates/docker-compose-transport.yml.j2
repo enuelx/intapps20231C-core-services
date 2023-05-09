@@ -7,12 +7,13 @@ services:
       - {{ env['PORTS'] }}
     networks:
       - app-network
-    log_driver: "awslogs"
-    log_opt:
-      awslogs-region: "{{ env['AWS_REGION'] }}"
-      awslogs-group: "{{ env['CONTAINER'] }}-logs"
-      awslogs-stream: "stream"
-      awslogs-create-group: "true"
+    logging:
+      driver: "awslogs"
+      options:
+        awslogs-region: "{{ env['AWS_REGION'] }}"
+        awslogs-group: "{{ env['CONTAINER'] }}-logs"
+        awslogs-stream: "stream"
+        awslogs-create-group: "true"
 
 volumes:
   grafana-data:
