@@ -8,16 +8,21 @@ import org.springframework.stereotype.Controller;
 import core.service.transport.Producer;
 import core.service.transport.RabbitConfig;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 @Controller
 public class WebSocketController {
 
   @Autowired
   Producer producer;
   
+  private static final Logger logger = LogManager.getLogger(WebSocketController.class);
+
+
   @MessageMapping("/send/users")
   public void sendToUserQueue(String message){
     producer.sendTo(RabbitConfig.TRADING_QUEUE, message);
-    System.out.println("Message for Send to User queue: " + message);
   }
 
   @MessageMapping("/send/business")
@@ -27,7 +32,8 @@ public class WebSocketController {
 
   @MessageMapping("/send/trading")
   public void sendToTradingQueue(String message){
-    System.out.println("Message for Send to Trading queue: " + message);
+    logger.info("Mensaje Enviado a la Cola de Trading: " + message);
+    producer.sendTo(RabbitConfig.TRADING_QUEUE, message);
   }
 
   @MessageMapping("/send/analytics")
