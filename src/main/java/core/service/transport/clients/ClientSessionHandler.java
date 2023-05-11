@@ -23,7 +23,7 @@ public class ClientSessionHandler implements StompSessionHandler {
   @Override
   public void handleFrame(StompHeaders headers, @Nullable Object payload) {
 	  IncommingMessage msg = (IncommingMessage) payload;
-	  logger.info("Received Message: " + msg.getContent() + "----" + msg.getFrom());
+	  logger.info("Mensaje Escuchado por el Cliente: " + msg.getContent() + " desde Hola " + msg.getFrom());
   }
 
   @Override
