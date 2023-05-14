@@ -8,14 +8,11 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 import com.rabbitmq.client.ConnectionFactory;
-import com.rabbitmq.client.impl.AMQImpl.Exchange.Bind;
-
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
-import java.util.Collection;
-
 import org.springframework.amqp.core.Binding;
 import org.springframework.amqp.core.BindingBuilder;
+import org.springframework.amqp.core.DirectExchange;
 import org.springframework.amqp.core.FanoutExchange;
 import org.springframework.amqp.core.Queue;
 
@@ -39,7 +36,7 @@ public class RabbitConfig {
   public static final String BUSINESS_QUEUE = "business-queue";
   public static final String ANALYTICS_QUEUE = "analytics-queue";
 
-  public static final String TRADING_EXCHANGE = "trading-exchange";
+  public static final String CORE_EXCHANGE = "core-exchange";
 
   public void print(String str){
     System.out.println(str);
@@ -99,27 +96,27 @@ public class RabbitConfig {
   }
 
   @Bean
-  public Binding analyticsBinding(Queue analyticsQueue, FanoutExchange exchange){
-    return BindingBuilder.bind(analyticsQueue).to(exchange);
+  public Binding analyticsBinding(Queue analyticsQueue, DirectExchange directExchange){
+    return BindingBuilder.bind(analyticsQueue).to(directExchange).with(ANALYTICS_QUEUE);
   }
 
   @Bean
-  public Binding businessBinding(Queue businessQueue, FanoutExchange exchange){
-    return BindingBuilder.bind(businessQueue).to(exchange);
+  public Binding businessBinding(Queue businessQueue, DirectExchange directExchange){
+    return BindingBuilder.bind(businessQueue).to(directExchange).with(BUSINESS_QUEUE);
   }
 
   @Bean
-  public Binding userBinding(Queue userQueue, FanoutExchange exchange){
-    return BindingBuilder.bind(userQueue).to(exchange);
+  public Binding userBinding(Queue userQueue, DirectExchange directExchange){
+    return BindingBuilder.bind(userQueue).to(directExchange).with(USERS_QUEUE);
   }
 
   @Bean
-  public Binding tradingBinding(Queue tradingQueue, FanoutExchange exchange){
-    return BindingBuilder.bind(tradingQueue).to(exchange);
+  public Binding tradingBinding(Queue tradingQueue, DirectExchange directExchange){
+    return BindingBuilder.bind(tradingQueue).to(directExchange).with(TRADING_QUEUE);
   }
 
   @Bean
-  public FanoutExchange fanoutExchange(){
-    return new FanoutExchange(TRADING_EXCHANGE);
+  public DirectExchange directExchange(){
+    return new DirectExchange(CORE_EXCHANGE);
   }
 }
