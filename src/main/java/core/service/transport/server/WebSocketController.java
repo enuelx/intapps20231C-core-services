@@ -22,12 +22,14 @@ public class WebSocketController {
 
   @MessageMapping("/send/users")
   public void sendToUserQueue(String message){
-    producer.sendTo(RabbitConfig.TRADING_QUEUE, message);
+    logger.info("Mensaje Enviado a la Cola de Usuarios: " + message);
+    producer.sendTo(RabbitConfig.USERS_QUEUE, message);
   }
 
   @MessageMapping("/send/business")
   public void sendToBusinessQueue(String message){
-    System.out.println("Message for Send to Business queue: " + message);
+    logger.info("Mensaje Enviado a la Cola de Business: " + message);
+    producer.sendTo(RabbitConfig.BUSINESS_QUEUE, message);
   }
 
   @MessageMapping("/send/trading")
@@ -38,6 +40,7 @@ public class WebSocketController {
 
   @MessageMapping("/send/analytics")
   public void sendToAnalyticsQueue(String message){
-    System.out.println("Message for Send to Analytics queue: " + message);
+    logger.info("Mensaje Enviado a la Cola de Analytics: " + message);
+    producer.sendTo(RabbitConfig.ANALYTICS_QUEUE, message);
   }
 }
