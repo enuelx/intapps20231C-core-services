@@ -1,8 +1,9 @@
 package core.service.transport;
 
+import java.util.Collection;
+
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.scheduling.annotation.Scheduled;
 
 public class Producer {
 
@@ -13,10 +14,7 @@ public class Producer {
     this.rabbitTemplate = rabbitTemplate;
   }
 
-  @Scheduled(initialDelay = 5000, fixedDelay = 5000)
-  public void sendMsg(){
-    String msg = new String("Hello from Producer");
-    System.out.println("Message to Sent from Producer: " + msg);
-    rabbitTemplate.convertAndSend(RabbitConfig.TRADING_EXCHANGE, RabbitConfig.TRADING_QUEUE, msg);
+  public void sendTo(String queue, String message){
+    rabbitTemplate.convertAndSend(RabbitConfig.CORE_EXCHANGE, queue, message);
   }
 }

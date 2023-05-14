@@ -8,12 +8,11 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 import com.rabbitmq.client.ConnectionFactory;
-
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
-
 import org.springframework.amqp.core.Binding;
 import org.springframework.amqp.core.BindingBuilder;
+import org.springframework.amqp.core.DirectExchange;
 import org.springframework.amqp.core.FanoutExchange;
 import org.springframework.amqp.core.Queue;
 
@@ -33,7 +32,11 @@ public class RabbitConfig {
   int port;
  
   public static final String TRADING_QUEUE = "trading-queue";
-  public static final String TRADING_EXCHANGE = "trading-exchange";
+  public static final String USERS_QUEUE = "users-queue";
+  public static final String BUSINESS_QUEUE = "business-queue";
+  public static final String ANALYTICS_QUEUE = "analytics-queue";
+
+  public static final String CORE_EXCHANGE = "core-exchange";
 
   public void print(String str){
     System.out.println(str);
@@ -47,7 +50,6 @@ public class RabbitConfig {
     factory.setUsername(username);
     factory.setPassword(password);
     factory.setPort(port);
-    factory.useSslProtocol();
 
     return factory;
   }
@@ -74,17 +76,47 @@ public class RabbitConfig {
   }
 
   @Bean
-  public Queue queue(){
+  public Queue tradingQueue(){
     return new Queue(TRADING_QUEUE);
   }
 
   @Bean
-  public Binding bind(Queue queue, FanoutExchange exchange){
-    return BindingBuilder.bind(queue).to(exchange);
+  public Queue userQueue(){
+    return new Queue(USERS_QUEUE);
   }
 
   @Bean
-  public FanoutExchange fanoutExchange(){
-    return new FanoutExchange(TRADING_EXCHANGE);
+  public Queue businessQueue(){
+    return new Queue(BUSINESS_QUEUE);
+  }
+
+  @Bean
+  public Queue analyticsQueue(){
+    return new Queue(ANALYTICS_QUEUE);
+  }
+
+  @Bean
+  public Binding analyticsBinding(Queue analyticsQueue, DirectExchange directExchange){
+    return BindingBuilder.bind(analyticsQueue).to(directExchange).with(ANALYTICS_QUEUE);
+  }
+
+  @Bean
+  public Binding businessBinding(Queue businessQueue, DirectExchange directExchange){
+    return BindingBuilder.bind(businessQueue).to(directExchange).with(BUSINESS_QUEUE);
+  }
+
+  @Bean
+  public Binding userBinding(Queue userQueue, DirectExchange directExchange){
+    return BindingBuilder.bind(userQueue).to(directExchange).with(USERS_QUEUE);
+  }
+
+  @Bean
+  public Binding tradingBinding(Queue tradingQueue, DirectExchange directExchange){
+    return BindingBuilder.bind(tradingQueue).to(directExchange).with(TRADING_QUEUE);
+  }
+
+  @Bean
+  public DirectExchange directExchange(){
+    return new DirectExchange(CORE_EXCHANGE);
   }
 }

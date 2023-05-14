@@ -9,6 +9,21 @@ public class IncommingMessage {
     this.from = from;
   }
 
+  public IncommingMessage(){
+  }
+
+  public void setContent(String content) {
+	  this.content = content;
+  }
+
+  public String getFrom() {
+	return from;
+  }
+
+  public void setFrom(String from) {
+    this.from = from;
+  }
+
   public String getContent(){
     return content;
   }
