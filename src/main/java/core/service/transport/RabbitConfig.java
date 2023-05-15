@@ -52,7 +52,8 @@ public class RabbitConfig {
     factory.setUsername(username);
     factory.setPassword(password);
     factory.setPort(port);
-
+    factory.useSslProtocol();
+    
     return factory;
   }
 
