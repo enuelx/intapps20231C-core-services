@@ -35,6 +35,17 @@ module "kms_key_s3" {
   alias                   = "alias/${var.globals["namespace"]}/${var.globals["stage"]}/s3"
 }
 
+# Get AWS AMI
+data "aws_ami" "amazon_linux_2" {
+  most_recent = true
+  owners      = ["amazon"]
+
+  filter {
+    name   = "name"
+    values = ["amzn2-ami-hvm-*-x86_64-ebs"]
+  }
+}
+
 # VPC
 module "vpc" {
   source                 = "terraform-aws-modules/vpc/aws"
@@ -73,15 +84,8 @@ module "mq_broker" {
   use_existing_security_groups = var.mq_broker["use_existing_security_groups"]
   allowed_security_group_ids   = [module.vpc.default_security_group_id]
   allowed_ingress_ports        = var.mq_broker["allowed_ingress_ports"]
-  additional_security_group_rules = [
-    {
-      type        = "ingress"
-      from_port   = 0
-      to_port     = 65535
-      protocol    = "-1"
-      cidr_blocks = ["0.0.0.0/0"]
-    }
-  ]
+  mq_admin_user                = var.mq_broker["mq_admin_user"]
+  mq_application_user          = var.mq_broker["mq_application_user"]
 }
 
 resource "aws_ssm_parameter" "ssm_param_broker_id" {
@@ -94,7 +98,7 @@ resource "aws_ssm_parameter" "ssm_param_broker_id" {
 resource "aws_ssm_parameter" "ssm_param_broker_endpoint" {
   name      = "/mq/mq_broker_endpoint"
   type      = "String"
-  value     = "amqps://${module.mq_broker.broker_id}.mq.sa-east-1.amazonaws.com"
+  value     = module.mq_broker.primary_ssl_endpoint
   overwrite = true
 }
 
@@ -105,6 +109,129 @@ resource "aws_ssm_parameter" "ssm_param_mq_broker_dashboard" {
   value     = module.mq_broker.primary_console_url
   overwrite = true
 }
+
+module "ec2_pivot_mq_broker" {
+  source                      = "cloudposse/ec2-instance/aws"
+  version                     = "0.47.1"
+  ami                         = data.aws_ami.amazon_linux_2.id
+  vpc_id                      = module.vpc.vpc_id
+  ssh_key_pair                = var.ec2["ssh_key_pair"]
+  subnet                      = module.vpc.public_subnets[0]
+  security_groups             = [module.vpc.default_security_group_id]
+  name                        = "${var.globals["shortname"]}-mq-pivot"
+  namespace                   = var.globals["namespace"]
+  stage                       = var.globals["stage"]
+  associate_public_ip_address = var.ec2["associate_public_ip_address"]
+  security_group_rules = [
+    {
+      type        = "egress"
+      from_port   = 0
+      to_port     = 65535
+      protocol    = "-1"
+      cidr_blocks = ["0.0.0.0/0"]
+    },
+    {
+      type        = "ingress"
+      from_port   = 0
+      to_port     = 65535
+      protocol    = "tcp"
+      cidr_blocks = ["0.0.0.0/0"]
+    },
+    {
+      type        = "ingress"
+      from_port   = 22
+      to_port     = 22
+      protocol    = "tcp"
+      cidr_blocks = ["0.0.0.0/0"]
+    }
+  ]
+}
+
+# resource "aws_acm_certificate" "rabbitmq_cert" {
+#   domain_name       = "mq.deliver.ar"
+#   validation_method = "DNS"
+# }
+
+# resource "aws_lb" "rabbitmq_nlb" {
+#   name               = "${var.globals["shortname"]}-mq-lb"
+#   internal           = false
+#   load_balancer_type = "network"
+#   subnets            = module.vpc.public_subnets
+
+#   enable_deletion_protection = false
+
+#   tags = {
+#     Name = "${var.globals["shortname"]}-mq-lb"
+#   }
+# }
+
+# resource "aws_lb_target_group" "rabbitmq_5671" {
+#   name        = "rabbitmq-5671"
+#   port        = 5671
+#   protocol    = "TLS"
+#   vpc_id      = module.vpc.vpc_id
+#   target_type = "ip"
+
+#   health_check {
+#     protocol = "TCP"
+#     port     = "traffic-port"
+#     interval = 30
+#     timeout  = 10
+#   }
+# }
+
+# resource "aws_lb_target_group" "rabbitmq_443" {
+#   name        = "rabbitmq-443"
+#   port        = 443
+#   protocol    = "TLS"
+#   vpc_id      = module.vpc.vpc_id
+#   target_type = "ip"
+
+#   health_check {
+#     protocol = "TCP"
+#     port     = "traffic-port"
+#     interval = 30
+#     timeout  = 10
+#   }
+# }
+
+# resource "aws_lb_target_group_attachment" "rabbitmq_5671_attachment" {
+#   target_group_arn = aws_lb_target_group.rabbitmq_5671.arn
+#   target_id        = module.mq_broker.primary_ip_address
+#   port             = 5671
+# }
+
+# resource "aws_lb_target_group_attachment" "rabbitmq_443_attachment" {
+#   target_group_arn = aws_lb_target_group.rabbitmq_443.arn
+#   target_id        = module.mq_broker.primary_ip_address
+#   port             = 443
+# }
+
+# resource "aws_lb_listener" "rabbitmq_5671" {
+#   load_balancer_arn = aws_lb.rabbitmq_nlb.arn
+#   port              = "5671"
+#   protocol          = "TLS"
+#   ssl_policy        = "ELBSecurityPolicy-2016-08"
+#   certificate_arn   = aws_acm_certificate.rabbitmq_cert.arn
+
+#   default_action {
+#     type             = "forward"
+#     target_group_arn = aws_lb_target_group.rabbitmq_5671.arn
+#   }
+# }
+
+# resource "aws_lb_listener" "rabbitmq_443" {
+#   load_balancer_arn = aws_lb.rabbitmq_nlb.arn
+#   port              = "443"
+#   protocol          = "TLS"
+#   ssl_policy        = "ELBSecurityPolicy-2016-08"
+#   certificate_arn   = aws_acm_certificate.rabbitmq_cert.arn
+
+#   default_action {
+#     type             = "forward"
+#     target_group_arn = aws_lb_target_group.rabbitmq_443.arn
+#   }
+# }
 
 #### EC2
 resource "aws_iam_role" "ec2_instance" {
@@ -159,16 +286,6 @@ resource "aws_iam_instance_profile" "ec2_instance" {
   role = aws_iam_role.ec2_instance.name
 }
 
-data "aws_ami" "amazon_linux_2" {
-  most_recent = true
-  owners      = ["amazon"]
-
-  filter {
-    name   = "name"
-    values = ["amzn2-ami-hvm-*-x86_64-ebs"]
-  }
-}
-
 module "ec2_instance_app" {
   source                      = "cloudposse/ec2-instance/aws"
   version                     = "0.47.1"
@@ -195,6 +312,13 @@ module "ec2_instance_app" {
       type        = "ingress"
       from_port   = 22
       to_port     = 22
+      protocol    = "tcp"
+      cidr_blocks = ["0.0.0.0/0"]
+    },
+    {
+      type        = "ingress"
+      from_port   = 8080
+      to_port     = 8080
       protocol    = "tcp"
       cidr_blocks = ["0.0.0.0/0"]
     },
@@ -343,7 +467,7 @@ module "ec2_instance_grafana" {
 }
 
 resource "aws_security_group" "alb_sg_grafana" {
-  name        = "alb-sg"
+  name        = "${var.globals["namespace"]}-${var.globals["stage"]}-alb-sg"
   description = "Allow inbound traffic to ALB"
   vpc_id      = module.vpc.vpc_id
 
@@ -388,6 +512,7 @@ resource "aws_lb" "grafana_lb" {
 }
 
 resource "aws_lb_target_group" "grafana_target_group" {
+  name     = "grafana-3000"
   port     = 3000
   protocol = "HTTP"
   vpc_id   = module.vpc.vpc_id
@@ -428,3 +553,4 @@ resource "aws_lb_target_group_attachment" "grafana_target_group_attachment" {
   target_group_arn = aws_lb_target_group.grafana_target_group.arn
   target_id        = module.ec2_instance_grafana.id
 }
+

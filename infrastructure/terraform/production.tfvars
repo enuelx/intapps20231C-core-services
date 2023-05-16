@@ -20,7 +20,7 @@ vpc = {
 
 mq_broker = {
   apply_immediately            = true
-  auto_minor_version_upgrade   = true
+  auto_minor_version_upgrade   = false
   deployment_mode              = "SINGLE_INSTANCE"
   engine_type                  = "RabbitMQ"
   engine_version               = "3.10.10"
@@ -30,8 +30,10 @@ mq_broker = {
   audit_log_enabled            = false
   encryption_enabled           = true
   use_aws_owned_key            = true
-  allowed_ingress_ports        = [8162, 5671]
+  allowed_ingress_ports        = [5671, 61613, 61614, 15672]
   use_existing_security_groups = false
+  mq_admin_user                = ["admin"]
+  mq_application_user          = ["app_user"]
 }
 
 ec2 = {

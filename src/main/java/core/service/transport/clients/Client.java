@@ -1,56 +1,97 @@
 package core.service.transport.clients;
 
+import java.io.Console;
 import java.util.Scanner;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
-
-import org.springframework.beans.factory.annotation.Value;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import org.springframework.messaging.converter.MappingJackson2MessageConverter;
 import org.springframework.messaging.simp.stomp.StompSession;
 import org.springframework.web.socket.client.WebSocketClient;
 import org.springframework.web.socket.client.standard.StandardWebSocketClient;
 import org.springframework.web.socket.messaging.WebSocketStompClient;
 
-import core.service.transport.server.IncommingMessage;
 import core.service.transport.server.WebSocketConstants;
 
 public class Client {
 
-  public static void main(String args[]) throws InterruptedException, ExecutionException{
+  public static void main(String args[]) throws InterruptedException, ExecutionException, TimeoutException{
+
     WebSocketClient client = new StandardWebSocketClient();
     WebSocketStompClient stompClient = new WebSocketStompClient(client);
     stompClient.setMessageConverter(new MappingJackson2MessageConverter());
 
     ClientSessionHandler stopmSessionHandler = new ClientSessionHandler();
 
-    String URL = WebSocketConstants.ENDPOINTS.get("trading");
+    String URL = WebSocketConstants.ENDPOINTS.get("users");
     
     CompletableFuture<StompSession> sessionAsync = stompClient.connectAsync(URL, stopmSessionHandler);
-    StompSession session = sessionAsync.get();
-
-    //session.subscribe("/topic/client", handler);
+    StompSession session = sessionAsync.get(1, TimeUnit.SECONDS);
 
     if (!session.isConnected())
       return;
 
-    while (true){
-      session.send("/app/client", new IncommingMessage("Hello World", "UADE"));
-      Thread.sleep(2000);
+    Thread.sleep(2000);
+    String message = "";
+
+    String options[] = new String[]{
+      "trading",
+      "business",
+      "analytics",
+      "users",
+    };
+
+    Boolean selected[] = new Boolean[]{
+      false, false, false, false
+    };
+
+    Console console = System.console();
+
+    while (!message.equals("continue")) {
+      System.out.println("Escoja cual de los siguientes canales quiere escuchar: escriba continue para salir");
+      System.out.println("1 - Trading");
+      System.out.println("2 - Business");
+      System.out.println("3 - Analytics");
+      System.out.println("4 - Users");
+      message = console.readLine("");
+
+      if (message.equals("continue"))
+        break;
+
+      try {
+        int option = Integer.parseInt(message);
+
+        if (option >= 1 && option <= 4) {
+          selected[option - 1] = true;
+          session.subscribe(WebSocketConstants.PREFIX_TOPIC + "/" + options[option - 1], stopmSessionHandler);
+        }
+      } catch (Exception e) {
+        System.out.println("Opcion Invalida");
+        continue;
+      }
     }
 
-    // ClientSessionHandler handler = new ClientSessionHandler();
+    for (int i = 0; i < selected.length; i++) {
+      if (selected[i])
+        System.out.println("Subscrito a : " + options[i]);
+    }
 
-    // stompClient.connect(urlString, handler, args)
+    message = "";
 
-    // CompletableFuture<StompSession> sessionAsync = stompClient.connectAsync(urlString, handler);
-    // StompSession session = sessionAsync.get();
+    while(!message.equals("exit")){
+      System.out.println(message);
+      System.out.println("Escriba el mensaje a enviar hacia el Servidor de WebSocket, escriba exit para finalizar");
+      message = console.readLine();
+      sendToSubscribed(selected, options, message, session);
+    }
+  }
 
-    // //session.subscribe("/topic/client", handler);
-
-    // while (true){
-    //   session.send("/app/client", new IncommingMessage("Hello World", "UADE"));
-    //   Thread.sleep(2000);
-    // }
+  public static void sendToSubscribed(Boolean[] selected, String[] destinations, String message, StompSession session){
+    for (int i = 0; i < destinations.length; i++) {
+        if (selected[i])
+          session.send(WebSocketConstants.PREFIX_APP + "/send/" + destinations[i], message);
+    }
   }
 }
 
