@@ -40,9 +40,6 @@ jobs:
     - name: Terraform init
       run: terraform -chdir="./infrastructure/terraform" init -input=false
 
-    # - name: Checkov
-    #   run: checkov -d .
-
     - name: Terraform Plan
       id: terraform_plan
       run: terraform -chdir="./infrastructure/terraform" plan -var-file=production.tfvars -no-color -out=tfplan
