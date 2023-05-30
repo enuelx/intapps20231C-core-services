@@ -84,8 +84,8 @@ module "mq_broker" {
   use_existing_security_groups = var.mq_broker["use_existing_security_groups"]
   allowed_security_group_ids   = [module.vpc.default_security_group_id]
   allowed_ingress_ports        = var.mq_broker["allowed_ingress_ports"]
-  mq_admin_user                = var.mq_broker["mq_admin_user"]
-  mq_application_user          = var.mq_broker["mq_application_user"]
+  # mq_admin_user                = var.mq_broker["mq_admin_user"]
+  # mq_application_user          = var.mq_broker["mq_application_user"]
 }
 
 resource "aws_ssm_parameter" "ssm_param_broker_id" {
@@ -113,7 +113,7 @@ resource "aws_ssm_parameter" "ssm_param_mq_broker_dashboard" {
 module "ec2_pivot_mq_broker" {
   source                      = "cloudposse/ec2-instance/aws"
   version                     = "0.47.1"
-  ami                         = data.aws_ami.amazon_linux_2.id
+  ami                         = "ami-0ade681366fb3aceb"
   vpc_id                      = module.vpc.vpc_id
   ssh_key_pair                = var.ec2["ssh_key_pair"]
   subnet                      = module.vpc.public_subnets[0]
@@ -289,7 +289,7 @@ resource "aws_iam_instance_profile" "ec2_instance" {
 module "ec2_instance_app" {
   source                      = "cloudposse/ec2-instance/aws"
   version                     = "0.47.1"
-  ami                         = data.aws_ami.amazon_linux_2.id
+  ami                         = "ami-0ade681366fb3aceb"
   vpc_id                      = module.vpc.vpc_id
   ssh_key_pair                = var.ec2["ssh_key_pair"]
   subnet                      = module.vpc.public_subnets[0]
@@ -337,6 +337,94 @@ module "ec2_instance_app" {
       cidr_blocks = ["0.0.0.0/0"]
     }
   ]
+}
+
+resource "aws_security_group" "alb_sg_app" {
+  name        = "${var.globals["namespace"]}-${var.globals["stage"]}-alb-app-sg"
+  description = "Allow inbound traffic to ALB"
+  vpc_id      = module.vpc.vpc_id
+
+  egress {
+    from_port   = 0
+    to_port     = 65535
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  ingress {
+    from_port   = 80
+    to_port     = 80
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  ingress {
+    from_port   = 443
+    to_port     = 443
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+}
+
+resource "aws_acm_certificate" "app_cert" {
+  domain_name       = "core.deliver.ar"
+  validation_method = "DNS"
+}
+
+resource "aws_lb" "app_lb" {
+  name               = "${var.globals["shortname"]}-app-lb"
+  internal           = false
+  load_balancer_type = "application"
+
+  subnets         = module.vpc.public_subnets
+  security_groups = [aws_security_group.alb_sg_app.id]
+
+  tags = {
+    Name = "${var.globals["shortname"]}-app-lb"
+  }
+}
+
+resource "aws_lb_target_group" "app_target_group" {
+  name     = "app-8080"
+  port     = 8080
+  protocol = "HTTP"
+  vpc_id   = module.vpc.vpc_id
+  health_check {
+    path = "/"
+  }
+}
+
+resource "aws_lb_listener" "app_listener_http" {
+  load_balancer_arn = aws_lb.app_lb.arn
+  port              = "80"
+  protocol          = "HTTP"
+
+  default_action {
+    type = "redirect"
+    redirect {
+      port        = "443"
+      protocol    = "HTTPS"
+      status_code = "HTTP_301"
+    }
+  }
+}
+
+resource "aws_lb_listener" "app_listener_https" {
+  load_balancer_arn = aws_lb.app_lb.arn
+  port              = "443"
+  protocol          = "HTTPS"
+  ssl_policy        = "ELBSecurityPolicy-2016-08"
+  certificate_arn   = aws_acm_certificate.app_cert.arn
+
+  default_action {
+    target_group_arn = aws_lb_target_group.app_target_group.arn
+    type             = "forward"
+  }
+}
+
+resource "aws_lb_target_group_attachment" "app_target_group_attachment" {
+  target_group_arn = aws_lb_target_group.app_target_group.arn
+  target_id        = module.ec2_instance_app.id
 }
 
 # ECR
@@ -416,7 +504,7 @@ resource "aws_iam_instance_profile" "ec2_instance_grafana" {
 module "ec2_instance_grafana" {
   source                      = "cloudposse/ec2-instance/aws"
   version                     = "0.47.1"
-  ami                         = data.aws_ami.amazon_linux_2.id
+  ami                         = "ami-0ade681366fb3aceb"
   vpc_id                      = module.vpc.vpc_id
   ssh_key_pair                = var.ec2["ssh_key_pair"]
   subnet                      = module.vpc.public_subnets[0]
