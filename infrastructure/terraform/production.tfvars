@@ -30,10 +30,8 @@ mq_broker = {
   audit_log_enabled            = false
   encryption_enabled           = true
   use_aws_owned_key            = true
-  allowed_ingress_ports        = [5671, 61613, 61614, 15672]
+  allowed_ingress_ports        = [5672, 5671, 61613, 61614, 15672]
   use_existing_security_groups = false
-  mq_admin_user                = ["admin"]
-  mq_application_user          = ["app_user"]
 }
 
 ec2 = {

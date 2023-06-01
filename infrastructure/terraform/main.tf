@@ -61,7 +61,7 @@ module "vpc" {
   enable_dns_hostnames   = var.vpc["enable_dns_hostnames"]
 }
 
-# # MQ
+# MQ
 module "mq_broker" {
   source                       = "cloudposse/mq-broker/aws"
   version                      = "2.0.1"
@@ -84,8 +84,6 @@ module "mq_broker" {
   use_existing_security_groups = var.mq_broker["use_existing_security_groups"]
   allowed_security_group_ids   = [module.vpc.default_security_group_id]
   allowed_ingress_ports        = var.mq_broker["allowed_ingress_ports"]
-  # mq_admin_user                = var.mq_broker["mq_admin_user"]
-  # mq_application_user          = var.mq_broker["mq_application_user"]
 }
 
 resource "aws_ssm_parameter" "ssm_param_broker_id" {
@@ -110,42 +108,42 @@ resource "aws_ssm_parameter" "ssm_param_mq_broker_dashboard" {
   overwrite = true
 }
 
-module "ec2_pivot_mq_broker" {
-  source                      = "cloudposse/ec2-instance/aws"
-  version                     = "0.47.1"
-  ami                         = "ami-0ade681366fb3aceb"
-  vpc_id                      = module.vpc.vpc_id
-  ssh_key_pair                = var.ec2["ssh_key_pair"]
-  subnet                      = module.vpc.public_subnets[0]
-  security_groups             = [module.vpc.default_security_group_id]
-  name                        = "${var.globals["shortname"]}-mq-pivot"
-  namespace                   = var.globals["namespace"]
-  stage                       = var.globals["stage"]
-  associate_public_ip_address = var.ec2["associate_public_ip_address"]
-  security_group_rules = [
-    {
-      type        = "egress"
-      from_port   = 0
-      to_port     = 65535
-      protocol    = "-1"
-      cidr_blocks = ["0.0.0.0/0"]
-    },
-    {
-      type        = "ingress"
-      from_port   = 0
-      to_port     = 65535
-      protocol    = "tcp"
-      cidr_blocks = ["0.0.0.0/0"]
-    },
-    {
-      type        = "ingress"
-      from_port   = 22
-      to_port     = 22
-      protocol    = "tcp"
-      cidr_blocks = ["0.0.0.0/0"]
-    }
-  ]
-}
+# module "ec2_pivot_mq_broker" {
+#   source                      = "cloudposse/ec2-instance/aws"
+#   version                     = "0.47.1"
+#   ami                         = "ami-0ade681366fb3aceb"
+#   vpc_id                      = module.vpc.vpc_id
+#   ssh_key_pair                = var.ec2["ssh_key_pair"]
+#   subnet                      = module.vpc.public_subnets[0]
+#   security_groups             = [module.vpc.default_security_group_id]
+#   name                        = "${var.globals["shortname"]}-mq-pivot"
+#   namespace                   = var.globals["namespace"]
+#   stage                       = var.globals["stage"]
+#   associate_public_ip_address = var.ec2["associate_public_ip_address"]
+#   security_group_rules = [
+#     {
+#       type        = "egress"
+#       from_port   = 0
+#       to_port     = 65535
+#       protocol    = "-1"
+#       cidr_blocks = ["0.0.0.0/0"]
+#     },
+#     {
+#       type        = "ingress"
+#       from_port   = 0
+#       to_port     = 65535
+#       protocol    = "tcp"
+#       cidr_blocks = ["0.0.0.0/0"]
+#     },
+#     {
+#       type        = "ingress"
+#       from_port   = 22
+#       to_port     = 22
+#       protocol    = "tcp"
+#       cidr_blocks = ["0.0.0.0/0"]
+#     }
+#   ]
+# }
 
 # resource "aws_acm_certificate" "rabbitmq_cert" {
 #   domain_name       = "mq.deliver.ar"
