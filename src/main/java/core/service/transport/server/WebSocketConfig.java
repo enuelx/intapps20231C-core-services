@@ -2,30 +2,23 @@ package core.service.transport.server;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.AbstractMap.SimpleEntry;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import org.apache.catalina.core.ApplicationContext;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.simp.config.ChannelRegistration;
 import org.springframework.messaging.simp.config.MessageBrokerRegistry;
 import org.springframework.messaging.simp.stomp.StompCommand;
-import org.springframework.messaging.simp.user.SimpUserRegistry;
 import org.springframework.messaging.support.ChannelInterceptor;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.web.socket.config.annotation.EnableWebSocketMessageBroker;
 import org.springframework.web.socket.config.annotation.StompEndpointRegistry;
 import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerConfigurer;
-import org.springframework.web.socket.messaging.StompSubProtocolHandler;
-
-import core.service.transport.Consumer;
 import core.service.transport.RabbitConsumer;
 
 @Configuration
@@ -115,7 +108,7 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer{
   }
 
 
-  @Scheduled(fixedDelay = 5000)
+  @Scheduled(fixedDelay = 600 * 1000)
   public void checkConnections(){
     for (var itr : consumers.keySet()){
       ConsumerPair info = consumers.get(itr);
