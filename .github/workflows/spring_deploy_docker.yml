@@ -1,12 +1,12 @@
 name: building java spring in docker compose and deploy on aws
 
 on:
-  push:
-    branches: [main]
-    paths-ignore:
-      - "docs/**"
-      - "infrastructure/**"
-      - "README.md"
+  # push:
+  #   branches: [main]
+  #   paths-ignore:
+  #     - "docs/**"
+  #     - "infrastructure/**"
+  #     - "README.md"
   workflow_dispatch:
 
 permissions:

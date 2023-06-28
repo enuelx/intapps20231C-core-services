@@ -1,12 +1,13 @@
 name: building java spring and deploy on aws
 
 on:
-  push:
-    branches: [ec2/**]
-    paths-ignore:
-      - "docs/**"
-      - "infrastructure/**"
-      - "README.md"
+  # push:
+  #   branches: [ec2/**]
+  #   paths-ignore:
+  #     - "docs/**"
+  #     - "infrastructure/**"
+  #     - "README.md"
+  workflow_dispatch:
 
 permissions:
   id-token: write
